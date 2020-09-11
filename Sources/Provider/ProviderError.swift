@@ -12,6 +12,11 @@ import Persister
 /// Possible errors encountered while attempting to provide items.
 public enum ProviderError: Error {
     
+    public struct PartialRetrievalPersistenceError {
+        let key: String
+        let persistenceError: PersistenceError
+    }
+    
     /// An underlying networking error occurred.
     /// - Parameter error: The error that occurred with the network request.
     case networkError(_ error: NetworkError)
@@ -26,4 +31,7 @@ public enum ProviderError: Error {
     
     /// There was no strong reference kept to the `Provider`.
     case noStrongReferenceToProvider
+    
+    
+    case partialRetrieval(retrievedItems: [Providable], persistenceErrors: [PartialRetrievalPersistenceError], networkError: NetworkError)
 }

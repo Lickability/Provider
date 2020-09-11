@@ -88,7 +88,10 @@ extension ItemProvider: Provider {
             let providerBehaviors = self.defaultProviderBehaviors + providerBehaviors
             providerBehaviors.providerWillProvide(forRequest: request)
             
-            if let cachedItems: [Item] = self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
+            
+            //let items =
+            
+            if let cachedItems: [Item] = try? self.cache?.readItems(forKey: request.persistenceKey), !cachedItems.isEmpty {
                 completionQueue.async { completion(.success(cachedItems)) }
                 
                 providerBehaviors.providerDidProvide(item: cachedItems, forRequest: request)
@@ -150,7 +153,7 @@ extension ItemProvider: Provider {
     
     public func provideItems<Item: Providable>(request: ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) -> AnyPublisher<[Item], ProviderError> {
         
-        return Just<[Item]?>(self.cache?.readItems(forKey: request.persistenceKey))
+        return Just<[Item]?>(try? self.cache?.readItems(forKey: request.persistenceKey))
             .setFailureType(to: ProviderError.self)
             .flatMap { items -> AnyPublisher<[Item], ProviderError> in
                 if let items = items {
@@ -202,10 +205,28 @@ extension FileManager {
 }
 
 private extension Cache {
-    func readItems<Item: Codable>(forKey key: Key) -> [Item]? {
-        let itemIDs: [String]? = try? read(forKey: key)
+    func readItems<Item: Codable>(forKey key: Key) throws -> [Item] { // return items and `PartialRetrievalPersistenceError`, maybe in a tuple.
+        guard let itemIDs: [String] = try read(forKey: key) else {
+            throw PersistenceError.noValidDataForKey
+        }
         
-        return itemIDs?.compactMap { try? read(forKey: $0) }
+        var failedItemIDs: [String] = [] // make these `PartialRetrievalPersistenceError`s, not strings
+        let items: [Item] = itemIDs.compactMap { key in
+            do {
+                guard let item: Item = try read(forKey: key) else {
+                    failedItemIDs.append(key)
+                    return nil
+                }
+                
+                return item
+            } catch {
+                failedItemIDs.append(key)
+                return nil
+            }
+        }
+        
+        
+        return items
     }
     
     func writeItems<Item: Providable>(_ items: [Item], forKey key: Key) {
