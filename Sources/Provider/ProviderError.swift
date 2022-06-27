@@ -35,7 +35,7 @@ public indirect enum ProviderError: LocalizedError {
     
     /// An underlying decoding error occurred.
     /// - Parameter error: The error that occurred while decoding.
-    case decodingError(_ error: Error)
+    case decodingError(_ error: DecodingError)
     
     /// A request to retrieve multiple items ended in failure. This error provides a partial response in the event that we were able to retrieve some of the requested items from the cache.
     /// - Parameters:
@@ -52,8 +52,8 @@ public indirect enum ProviderError: LocalizedError {
             return error.errorDescription
         case let .persistenceError(error):
             return error.errorDescription
-        case .decodingError:
-            return NSLocalizedString("Network Error Occurred", comment: "The title of an error alert shown when there is no valid data or no response from the server.")
+        case let .decodingError(error):
+            return error.errorLog
         case let .partialRetrieval(_, _, providerError):
             return providerError.errorDescription
         }
@@ -65,8 +65,8 @@ public indirect enum ProviderError: LocalizedError {
             return error.failureReason
         case let .persistenceError(error):
             return error.failureReason
-        case .decodingError:
-            return NSLocalizedString("The server’s data was not able to be read.", comment: "A failure reason for an error during decoding.")
+        case let .decodingError(error):
+            return error.failureReason
         case let .partialRetrieval(_, _, providerError):
             return providerError.failureReason
         }
@@ -78,8 +78,8 @@ public indirect enum ProviderError: LocalizedError {
             return error.recoverySuggestion
         case let .persistenceError(error):
             return error.recoverySuggestion
-        case .decodingError:
-            return nil
+        case let .decodingError(error):
+            return error.recoverySuggestion
         case let .partialRetrieval(_, _, providerError):
             return providerError.recoverySuggestion
         }
