@@ -5,9 +5,9 @@
         "package": "Networking",
         "repositoryURL": "https://github.com/Lickability/Networking",
         "state": {
-          "branch": null,
-          "revision": "0ed53ac918cce33d6273b430da29c296ae58edc2",
-          "version": "1.1.0"
+          "branch": "feature/error-information",
+          "revision": "01dec7a9a835471f6736440b1c533fd81d663cb0",
+          "version": null
         }
       },
       {

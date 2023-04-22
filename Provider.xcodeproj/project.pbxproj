@@ -599,7 +599,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Networking";
 			requirement = {
-				branch = main;
+				branch = "feature/error-information";
 				kind = branch;
 			};
 		};

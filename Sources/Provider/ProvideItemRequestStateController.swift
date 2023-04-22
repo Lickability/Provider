@@ -24,7 +24,7 @@ public final class ProvideItemRequestStateController<Item: Providable> {
         case inProgress
         
         /// A request that has been completed with an associated result.
-        case completed(Result<Item, ProviderError>)
+        case completed(Result<Item, ProviderError>, Bool)
                 
         /// A `Bool` representing if a request is in progress.
         public var isInProgress: Bool {
@@ -37,11 +37,12 @@ public final class ProvideItemRequestStateController<Item: Providable> {
         }
         
         /// The completed `LocalizedError`, if one exists.
+        @available(*, deprecated, message: "Please use completedErrorInformation instead.")
         public var completedError: LocalizedError? {
             switch self {
             case .notInProgress, .inProgress:
                 return nil
-            case let .completed(result):
+            case let .completed(result, _):
                 switch result {
                 case .success:
                     return nil
@@ -60,12 +61,40 @@ public final class ProvideItemRequestStateController<Item: Providable> {
             }
         }
         
+        /// The completed `LocalizedError`, if one exists.
+        public var completedErrorInformation: ErrorInformation? {
+            switch self {
+            case .notInProgress, .inProgress:
+                return nil
+            case let .completed(result, flag):
+                switch result {
+                case .success:
+                    return nil
+                case let .failure(error):
+                    switch error {
+                    case let .networkError(networkError):
+                        return ErrorInformation(error: networkError, flag: flag)
+                    case let .decodingError(error):
+                        if let error = error as? LocalizedError {
+                            return ErrorInformation(error: error as LocalizedError, flag: flag)
+                        }
+                        
+                        return nil
+                    case let .partialRetrieval(_, _, providerError):
+                        return ErrorInformation(error: providerError, flag: flag)
+                    case let .persistenceError(error):
+                        return ErrorInformation(error: error, flag: flag)
+                    }
+                }
+            }
+        }
+        
         /// The `Item` for a completed request if one exists.
         public var completedItem: Item? {
             switch self {
             case .notInProgress, .inProgress:
                 return nil
-            case let .completed(result):
+            case let .completed(result, _):
                 switch result {
                 case let .success(response):
                     return response
@@ -82,7 +111,7 @@ public final class ProvideItemRequestStateController<Item: Providable> {
         
         /// A `Bool` indicating if the request has finished with an error.
         public var didFail: Bool {
-            return completedError != nil
+            return completedErrorInformation != nil
         }
     }
     
@@ -110,7 +139,8 @@ public final class ProvideItemRequestStateController<Item: Providable> {
     ///   - requestBehaviors: Additional `RequestBehavior`s to append to the request.
     ///   - allowExpiredItem: A `Bool` indicating if the provider should be allowed to return an expired item.
     ///   - retryCount: The number of retries that should be made, if the request failed.
-    public func provide(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false, retryCount: Int = 2) {
+    ///   - flag: A `Bool` flag that follows the request through completion.
+    public func provide(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false, retryCount: Int = 2, flag: Bool = false) {
         providerStatePublisher.send(.inProgress)
 
         provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
@@ -118,7 +148,7 @@ public final class ProvideItemRequestStateController<Item: Providable> {
             .mapAsResult()
             .receive(on: scheduler)
             .sink { [providerStatePublisher] result in
-                providerStatePublisher.send(.completed(result))
+                providerStatePublisher.send(.completed(result, flag))
             }
             .store(in: &cancellables)
     }
