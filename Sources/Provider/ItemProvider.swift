@@ -52,6 +52,7 @@ public final class ItemProvider {
 
 extension ItemProvider: Provider {
     
+    
     // MARK: - Provider
     
     public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable? {
@@ -244,6 +245,22 @@ extension ItemProvider: Provider {
                 })
                 .subscribe(on: providerQueue)
                 .eraseToAnyPublisher()
+    }
+    
+    public func asyncProvide<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) async -> Result<Item, ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        await withCheckedContinuation { continuation in
+           _ = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
+    
+    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) async -> Result<[Item], ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        await withCheckedContinuation { continuation in
+           _ = provideItems(request: request, providerBehaviors: providerBehaviors, allowExpiredItems: allowExpiredItems) { result in
+                continuation.resume(returning: result)
+            }
+        }
     }
     
     private func itemsCachePublisher<Item: Providable>(for request: any ProviderRequest) -> Result<CacheItemsResponse<Item>?, ProviderError>.Publisher {
