@@ -247,17 +247,17 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) async -> Result<Item, ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
+    public func asyncProvide<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
         await withCheckedContinuation { continuation in
-           _ = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem) { result in
+           _ = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
                 continuation.resume(returning: result)
             }
         }
     }
     
-    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) async -> Result<[Item], ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
+    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> where Item : Identifiable, Item : Decodable, Item : Encodable {
         await withCheckedContinuation { continuation in
-           _ = provideItems(request: request, providerBehaviors: providerBehaviors, allowExpiredItems: allowExpiredItems) { result in
+           _ = provideItems(request: request, providerBehaviors: providerBehaviors) { result in
                 continuation.resume(returning: result)
             }
         }
