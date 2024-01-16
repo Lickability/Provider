@@ -1,5 +1,5 @@
 //
-//  ItemProviderTest+Async.swift
+//  ItemProviderTests+Async.swift
 //  ProviderTests
 //
 //  Created by Ashli Rankin on 1/16/24.
@@ -16,7 +16,7 @@ import Persister
 
 @testable import Provider
 
-final class ItemProviderTest_Async: XCTestCase {
+final class ItemProviderTests_Async: XCTestCase {
 
     private let provider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
     private let expiredProvider: ItemProvider = {
