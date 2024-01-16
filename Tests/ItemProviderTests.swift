@@ -49,7 +49,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-    _ = provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
             switch result {
             case .success: break
             case let .failure(error):
@@ -71,7 +71,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-       _ = provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
             switch result {
             case .success:
                 HTTPStubs.removeStub(originalStub)
@@ -80,7 +80,7 @@ class ItemProviderTests: XCTestCase {
                     fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
                 }
                 
-                _ = self.provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+                self.provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
                     switch result {
                     case .success:
                         break
@@ -107,8 +107,8 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-        _ = expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
-            _ = self.expiredProvider.provide(request: request, allowExpiredItem: true, itemHandler: { (result: Result<TestItem, ProviderError>) in
+        expiredProvider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+            self.expiredProvider.provide(request: request, allowExpiredItem: true, itemHandler: { (result: Result<TestItem, ProviderError>) in
                 switch result {
                 case .success: expectation.fulfill()
                 case .failure: break
@@ -129,7 +129,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
         }
         
-        _ = provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
             switch result {
             case .success:
                 XCTFail("There should be an error.")
@@ -151,7 +151,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
         
-        _ = provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+        provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
             switch result {
             case let .success(items):
                 XCTAssertEqual(items.count, 3)
@@ -174,7 +174,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
         
-        _ = provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+        provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
             switch result {
             case .success:
                 HTTPStubs.removeStub(originalStub)
@@ -183,7 +183,7 @@ class ItemProviderTests: XCTestCase {
                     fixture(filePath: OHPathForFile("InvalidItems.json", type(of: self))!, headers: nil)
                 }
                 
-                _ = self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+                self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
                     switch result {
                     case let .success(items):
                         XCTAssertEqual(items.count, 3)
@@ -210,13 +210,13 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
 
-        _ = expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
-            _ = self.expiredProvider.provideItems(request: request, allowExpiredItems: true, itemsHandler: { (result: Result<[TestItem], ProviderError>) in
+        expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+            self.expiredProvider.provideItems(request: request, allowExpiredItems: true, itemsHandler: { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case let .success(items): XCTAssertEqual(items.count, 3)
                 case .failure: XCTFail("This should not have failed.")
                 }
-
+                
                 expectation.fulfill()
             })
         }
@@ -232,7 +232,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
 
-        _ = provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+        provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
             
             try? self.provider.cache?.remove(forKey: "Hello 2")
             HTTPStubs.removeStub(originalStub)
@@ -241,7 +241,7 @@ class ItemProviderTests: XCTestCase {
                 fixture(filePath: self.itemPath, headers: nil)
             }
             
-            _ = self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+            self.provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case .success:
                     XCTFail("Should have received a partial retrieval failure.")
@@ -283,7 +283,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
 
-        _ = expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+        expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
             
             try? self.expiredProvider.cache?.remove(forKey: "Hello 2")
             HTTPStubs.removeStub(originalStub)
@@ -292,7 +292,7 @@ class ItemProviderTests: XCTestCase {
                 fixture(filePath: self.itemPath, headers: nil)
             }
             
-            _ = self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+            self.expiredProvider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
                 switch result {
                 case .success:
                     XCTFail("Should have received a decoding error.")
@@ -309,7 +309,6 @@ class ItemProviderTests: XCTestCase {
         
         wait(for: [expectation], timeout: 2)
     }
-
     
     func testProvideItemsFailure() {
         let request = TestProviderRequest()
@@ -320,7 +319,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: OHPathForFile("InvalidItems.json", type(of: self))!, headers: nil)
         }
         
-        _ = provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
+        provider.provideItems(request: request) { (result: Result<[TestItem], ProviderError>) in
             switch result {
             case .success:
                 XCTFail("There should be an error.")
@@ -346,7 +345,7 @@ class ItemProviderTests: XCTestCase {
             fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
         }
 
-        _ = provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
             switch result {
             case let .success(item):
                 XCTAssertNotEqual(item.title, testItem.title)
