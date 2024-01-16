@@ -686,7 +686,7 @@ struct TestItem: Providable {
 
 extension FileManager {
     
-    fileprivate var cachesDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
+    var cachesDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
         return urls(for: .cachesDirectory, in: .userDomainMask).first
     }
 }
