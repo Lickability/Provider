@@ -52,7 +52,6 @@ public final class ItemProvider {
 
 extension ItemProvider: Provider {
     
-    
     // MARK: - Provider
     
     @discardableResult
