@@ -37,6 +37,8 @@ class ItemProviderTests: XCTestCase {
         
         super.tearDown()
     }
+    
+    // MARK: - Item Provider Item Handler Tests
 
     func testProvideItem() {
         let request = TestProviderRequest()
@@ -214,7 +216,7 @@ class ItemProviderTests: XCTestCase {
                 case let .success(items): XCTAssertEqual(items.count, 3)
                 case .failure: XCTFail("This should not have failed.")
                 }
-
+                
                 expectation.fulfill()
             })
         }
@@ -307,7 +309,6 @@ class ItemProviderTests: XCTestCase {
         
         wait(for: [expectation], timeout: 2)
     }
-
     
     func testProvideItemsFailure() {
         let request = TestProviderRequest()
@@ -330,6 +331,35 @@ class ItemProviderTests: XCTestCase {
         
         wait(for: [expectation], timeout: 2)
     }
+    
+    func testProvideItemSkipsCacheOnPostRequest() {
+        let key = "TestPostKey"
+        let request = TestPostProviderRequest(key: key)
+        
+        let expectation = self.expectation(description: "The item will exist.")
+        
+        let testItem = TestItem(title: "Title")
+        try? provider.cache?.write(item: testItem, forKey: key)
+        
+        stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
+        }
+
+        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
+            switch result {
+            case let .success(item):
+                XCTAssertNotEqual(item.title, testItem.title)
+            case let .failure(error):
+                XCTFail("There should be no error: \(error)")
+            }
+            
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 2)
+    }
+    
+    // MARK: - Item Provider Publisher Tests
     
     func testProvideItemPublisher() {
         let request = TestProviderRequest()
@@ -623,70 +653,5 @@ class ItemProviderTests: XCTestCase {
             .store(in: &cancellables)
         
         wait(for: [expectation], timeout: 2)
-    }
-
-    func testProvideItemSkipsCacheOnPostRequest() {
-        let key = "TestPostKey"
-        let request = TestPostProviderRequest(key: key)
-        
-        let expectation = self.expectation(description: "The item will exist.")
-        
-        let testItem = TestItem(title: "Title")
-        try? provider.cache?.write(item: testItem, forKey: key)
-        
-        stub(condition: { _ in true }) { _ in
-            fixture(filePath: OHPathForFile("Item.json", type(of: self))!, headers: nil)
-        }
-
-        provider.provide(request: request) { (result: Result<TestItem, ProviderError>) in
-            switch result {
-            case let .success(item):
-                XCTAssertNotEqual(item.title, testItem.title)
-            case let .failure(error):
-                XCTFail("There should be no error: \(error)")
-            }
-            
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 2)
-    }
-}
-
-struct TestProviderRequest: ProviderRequest {
-    
-    let persistenceKey: Key?
-    var baseURL: URL { URL(string: "https://www.google.com")! }
-    var path: String { "" }
-
-    init(key: Key = "TestExample") {
-        self.persistenceKey = key
-    }
-}
-
-struct TestPostProviderRequest: ProviderRequest {
-    let persistenceKey: Key?
-    var baseURL: URL { URL(string: "https://www.google.com")! }
-    var path: String { "" }
-
-    init(key: Key = "TestPostExample") {
-        self.persistenceKey = key
-    }
-    
-    var httpMethod: HTTPMethod {
-        return .post
-    }
-}
-
-struct TestItem: Providable {
-    var identifier: Key { return title }
-    
-    let title: String
-}
-
-extension FileManager {
-    
-    fileprivate var cachesDirectoryURL: URL! { //swiftlint:disable:this implicitly_unwrapped_optional
-        return urls(for: .cachesDirectory, in: .userDomainMask).first
     }
 }
