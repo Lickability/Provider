@@ -619,7 +619,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Networking";
 			requirement = {
-				branch = main;
+				branch = "task/exposing-progressState";
 				kind = branch;
 			};
 		};
