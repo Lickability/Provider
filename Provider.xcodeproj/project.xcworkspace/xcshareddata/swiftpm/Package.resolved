@@ -1,4 +1,5 @@
 {
+  "originHash" : "e89086004bb1eb0eadde723b71e9d5a8a0b8b07ce2d76f38307d64c2244fd5ba",
   "pins" : [
     {
       "identity" : "networking",
@@ -6,7 +7,7 @@
       "location" : "https://github.com/Lickability/Networking",
       "state" : {
         "branch" : "main",
-        "revision" : "bf1a3f965845154a1553355a1124964bcdc62243"
+        "revision" : "c7013a352d5a52ed433a34b7af50b3bc008d37cb"
       }
     },
     {
@@ -28,5 +29,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
