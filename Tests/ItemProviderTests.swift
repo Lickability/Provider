@@ -20,7 +20,7 @@ class ItemProviderTests: XCTestCase {
     
     private let provider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
     private let expiredProvider: ItemProvider = {
-        let networkController = NetworkController(urlSession: .shared, defaultRequestBehaviors: [])
+        let networkController = NetworkController()
         let cache = Persister(memoryCache: MemoryCache(capacity: .unlimited, expirationPolicy: .afterInterval(-1)), diskCache: DiskCache(rootDirectoryURL: FileManager.default.cachesDirectoryURL, expirationPolicy: .afterInterval(-1)))
         
         return ItemProvider(networkRequestPerformer: networkController, cache: cache)
