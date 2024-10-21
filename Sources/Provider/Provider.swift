@@ -12,7 +12,7 @@ import Networking
 import Persister
 
 /// Represents the type of an instance that can be retrieved by a `Provider`.
-public typealias Providable = Codable & Identifiable
+public typealias Providable = Codable & Identifiable & Sendable
 
 /// Describes a type that can retrieve items from persistence or networking and store them in persistence.
 public protocol Provider {

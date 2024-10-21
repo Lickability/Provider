@@ -16,7 +16,7 @@ public indirect enum ProviderError: LocalizedError {
     // MARK: - ProviderError
     
     /// A struct that represents a failure when retrieving an individual item during a request for multiple items.
-    public struct PartialRetrievalFailure {
+    public struct PartialRetrievalFailure: Sendable {
         
         /// They key for the item that failed to be retrieved.
         let key: String

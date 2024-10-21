@@ -9,7 +9,7 @@
 import Foundation
 
 /// Describes a type that can be used to implement behaviors for provider requests.
-public protocol ProviderBehavior {
+public protocol ProviderBehavior: Sendable {
     
     /// Called before a provider request is performed.
     /// - Parameter request: The request that will be made.

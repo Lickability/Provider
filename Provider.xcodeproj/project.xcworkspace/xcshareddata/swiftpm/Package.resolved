@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Persister",
       "state" : {
-        "branch" : "main",
-        "revision" : "ac8f39433b3ced5df28f6c414d06ddc50a57ba7c"
+        "branch" : "feature/swift-6",
+        "revision" : "a9251d506d2c2b56f0d6004ebb6dd2dd4a5d5d73"
       }
     }
   ],

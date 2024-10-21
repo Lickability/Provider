@@ -7,15 +7,15 @@
 //
 
 import Foundation
-import Combine
-import Networking
+@preconcurrency import Combine
+@preconcurrency import Networking
 import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
-public final class ItemProvider {
+public final class ItemProvider: Sendable {
     
     /// The policy for how the provider checks the cache and/or the network for items.
-    public enum FetchPolicy {
+    public enum FetchPolicy: Sendable {
         /// Only request from the network if we don't have items in the cache. If items exist in the cache and are expired, it returns items from the cache and the network.
         case returnFromCacheElseNetwork
         
