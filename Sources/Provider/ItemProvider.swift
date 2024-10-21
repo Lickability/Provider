@@ -7,7 +7,7 @@
 //
 
 import Foundation
-@preconcurrency import Combine
+import Combine
 @preconcurrency import Networking
 import Persister
 
@@ -34,7 +34,7 @@ public final class ItemProvider: Sendable {
     private let fetchPolicy: FetchPolicy
     private let defaultProviderBehaviors: [ProviderBehavior]
     private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
-    private var cancellables = Set<AnyCancellable?>()
+    nonisolated(unsafe) private var cancellables = Set<AnyCancellable?>()
     
     /// Creates a new `ItemProvider`.
     /// - Parameters:
@@ -57,7 +57,7 @@ extension ItemProvider: Provider {
     @discardableResult
     public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable? {
         
-        var cancellable: AnyCancellable?
+        nonisolated(unsafe) var cancellable: AnyCancellable?
         cancellable = provide(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
@@ -84,7 +84,7 @@ extension ItemProvider: Provider {
     @discardableResult
     public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
         
-        var cancellable: AnyCancellable?
+        nonisolated(unsafe) var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
