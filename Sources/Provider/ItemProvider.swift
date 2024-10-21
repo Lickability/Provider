@@ -34,6 +34,7 @@ public final class ItemProvider: Sendable {
     private let fetchPolicy: FetchPolicy
     private let defaultProviderBehaviors: [ProviderBehavior]
     private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
+    private let cancellableQueue = DispatchQueue(label: "CancellableQueue")
     nonisolated(unsafe) private var cancellables = Set<AnyCancellable?>()
     
     /// Creates a new `ItemProvider`.
@@ -68,15 +69,18 @@ extension ItemProvider: Provider {
                 switch result {
                 case let .failure(error):
                     itemHandler(.failure(error))
-                case .finished: break
+                case .finished:
+                    break
                 }
                 
-                self?.cancellables.remove(cancellable)
+                _ = self?.cancellableQueue.sync {
+                    self?.cancellables.remove(cancellable)
+                }
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
             })
         
-        handlerQueue.async { self.cancellables.insert(cancellable) }
+        _ = cancellableQueue.sync { self.cancellables.insert(cancellable) }
         
         return cancellable
     }
@@ -95,15 +99,18 @@ extension ItemProvider: Provider {
                 switch result {
                 case let .failure(error):
                     itemsHandler(.failure(error))
-                case .finished: break
+                case .finished:
+                    break
                 }
                 
-                self?.cancellables.remove(cancellable)
+                _ = self?.cancellableQueue.sync {
+                    self?.cancellables.remove(cancellable)
+                }
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
             })
         
-        handlerQueue.async { self.cancellables.insert(cancellable) }
+        _ = cancellableQueue.sync { self.cancellables.insert(cancellable) }
         
         return cancellable
     }
