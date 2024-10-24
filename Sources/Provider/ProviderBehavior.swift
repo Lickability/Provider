@@ -22,11 +22,6 @@ public protocol ProviderBehavior: Sendable {
     func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest)
 }
 
-extension ProviderBehavior {
-    func providerWillProvide(forRequest request: any ProviderRequest) { }
-    func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest) { }
-}
-
 extension Array: ProviderBehavior where Element == ProviderBehavior {
     public func providerWillProvide(forRequest request: any ProviderRequest) {
         forEach { $0.providerWillProvide(forRequest: request) }

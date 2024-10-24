@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Networking",
       "state" : {
-        "revision" : "c7013a352d5a52ed433a34b7af50b3bc008d37cb",
-        "version" : "2.2.2"
+        "branch" : "feature/swift-6",
+        "revision" : "b3e0b281c33c6d4166b46420b11505b629633c7b"
       }
     },
     {
