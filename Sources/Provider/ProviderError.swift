@@ -11,7 +11,7 @@ import Networking
 import Persister
 
 /// Possible errors encountered while attempting to provide items.
-public indirect enum ProviderError: LocalizedError {
+public indirect enum ProviderError: LocalizedError, Sendable {
     
     // MARK: - ProviderError
     

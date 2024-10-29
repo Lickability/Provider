@@ -9,10 +9,10 @@
 import Foundation
 import Networking
 import Persister
-import Combine
+@preconcurrency import Combine
 
 /// A class responsible for representing the state and value of a provider item request being made.
-public final class ProvideItemRequestStateController<Item: Providable> {
+public final class ProvideItemRequestStateController<Item: Providable>: Sendable {
     
     /// The state of a provider request's lifecycle.
     public enum ProvideItemRequestState {
@@ -87,18 +87,19 @@ public final class ProvideItemRequestStateController<Item: Providable> {
     }
     
     /// A `Publisher` that can be subscribed to in order to receive updates about the status of a request.
-    public private(set) lazy var publisher: AnyPublisher<ProvideItemRequestState, Never> = {
-        return providerStatePublisher.prepend(.notInProgress).eraseToAnyPublisher()
-    }()
+    public let publisher: AnyPublisher<ProvideItemRequestState, Never>
     
     private let provider: Provider
-    private let providerStatePublisher = PassthroughSubject<ProvideItemRequestState, Never>()
-    private var cancellables = Set<AnyCancellable>()
+    private let providerStatePublisher: PassthroughSubject<ProvideItemRequestState, Never>
+    private let cancellablesQueue = DispatchQueue(label: "com.lickability.Provider.ProvideItemRequestStateController.cancellable.queue")
+    nonisolated(unsafe) private var cancellables = Set<AnyCancellable>()
     
     /// Initializes the `ProvideItemRequestStateController` with the specified parameters.
     /// - Parameter provider: The `Provider` used to provide a response from.
     public init(provider: Provider) {
         self.provider = provider
+        self.providerStatePublisher = PassthroughSubject<ProvideItemRequestState, Never>()
+        self.publisher = providerStatePublisher.prepend(.notInProgress).eraseToAnyPublisher()
     }
             
     /// Sends a request with the specified parameters to provide back an item.
@@ -114,20 +115,25 @@ public final class ProvideItemRequestStateController<Item: Providable> {
     public func provide(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false, retryCount: Int = 2) {
         providerStatePublisher.send(.inProgress)
 
-        provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
+        let cancellable = provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
             .retry(retryCount)
             .mapAsResult()
             .receive(on: scheduler)
             .sink { [providerStatePublisher] result in
                 providerStatePublisher.send(.completed(result))
             }
-            .store(in: &cancellables)
+        
+        _ = cancellablesQueue.sync {
+            cancellables.insert(cancellable)
+        }
     }
         
     /// Resets the state of the `providerStatePublisher` and cancels any in flight requests that may be ongoing. Cancellation is not guaranteed, and requests that are near completion may end up finishing, despite being cancelled.
     public func resetState() {
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
+        cancellablesQueue.sync {
+            cancellables.forEach { $0.cancel() }
+            cancellables.removeAll()
+        }
 
         providerStatePublisher.send(.notInProgress)
     }

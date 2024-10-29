@@ -12,7 +12,7 @@ import Combine
 import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
-public final class ItemProvider {
+public final class ItemProvider: Sendable {
     
     /// The policy for how the provider checks the cache and/or the network for items.
     public enum FetchPolicy: Sendable {
