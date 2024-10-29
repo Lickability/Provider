@@ -40,6 +40,7 @@ class ItemProviderTests: XCTestCase {
     
     // MARK: - Item Provider Item Handler Tests
 
+    @MainActor
     func testProvideItem() {
         let request = TestProviderRequest()
         
@@ -62,6 +63,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
         
+    @MainActor
     func testProvideItemReturnsCachedResult() {
         let request = TestProviderRequest()
         
@@ -98,6 +100,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemReturnsExpiredItemInBothCompletions() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The item will be returned in both closures.")
@@ -120,6 +123,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemFailure() {
         let request = TestProviderRequest()
         
@@ -142,6 +146,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItems() {
         let request = TestProviderRequest()
         
@@ -165,6 +170,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsReturnsCachedResult() {
         let request = TestProviderRequest()
         
@@ -201,6 +207,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsReturnsExpiredItemInBothCompletions() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The items will be returned in both closures.")
@@ -224,6 +231,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
 
+    @MainActor
     func testProvideItemsReturnsPartialResponseUponFailure() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The provider will return a partial response.")
@@ -275,6 +283,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsDoesNotReturnPartialResponseUponFailureForExpiredItems() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The provider will return a partial response.")
@@ -310,6 +319,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsFailure() {
         let request = TestProviderRequest()
         
@@ -332,6 +342,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemSkipsCacheOnPostRequest() {
         let key = "TestPostKey"
         let request = TestPostProviderRequest(key: key)
@@ -361,6 +372,7 @@ class ItemProviderTests: XCTestCase {
     
     // MARK: - Item Provider Publisher Tests
     
+    @MainActor
     func testProvideItemPublisher() {
         let request = TestProviderRequest()
         
@@ -381,6 +393,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemPublisherFailure() {
         let request = TestProviderRequest()
         
@@ -403,6 +416,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemPublisherReturnsCachedResult() {
         let request = TestProviderRequest()
         
@@ -433,6 +447,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemPublisherPublishesExpiredItem() {
         let request = TestProviderRequest()
         
@@ -457,6 +472,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisher() {
         let request = TestProviderRequest()
         
@@ -478,6 +494,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisherFailure() {
         let request = TestProviderRequest()
         
@@ -499,6 +516,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisherReturnsCachedResult() {
         let request = TestProviderRequest()
         
@@ -530,6 +548,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisherPublishesExpiredItems() {
         let request = TestProviderRequest()
         
@@ -554,6 +573,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisherReturnsPartialResponseUponFailure() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The provider will return a partial response.")
@@ -612,6 +632,7 @@ class ItemProviderTests: XCTestCase {
         wait(for: [expectation], timeout: 2)
     }
     
+    @MainActor
     func testProvideItemsPublisherDoesNotReturnPartialResponseUponFailureForExpiredItems() {
         let request = TestProviderRequest()
         let expectation = self.expectation(description: "The provider will return a partial response.")
