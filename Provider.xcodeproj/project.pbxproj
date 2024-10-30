@@ -626,8 +626,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Networking";
 			requirement = {
-				branch = "feature/swift-6";
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
 			};
 		};
 		F27A5791250BF23900FBAD8F /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
