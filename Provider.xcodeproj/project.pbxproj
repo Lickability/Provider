@@ -616,8 +616,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Persister";
 			requirement = {
-				branch = "feature/swift-6";
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
 			};
 		};
 		4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */ = {
@@ -633,7 +633,7 @@
 			repositoryURL = "https://github.com/AliSoftware/OHHTTPStubs.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
+				minimumVersion = 9.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

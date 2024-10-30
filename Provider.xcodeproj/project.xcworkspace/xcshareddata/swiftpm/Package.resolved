@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/AliSoftware/OHHTTPStubs.git",
       "state" : {
-        "revision" : "e92b5a5746ef16add2a1424f1fc19529d9a75cde",
-        "version" : "9.0.0"
+        "revision" : "12f19662426d0434d6c330c6974d53e2eb10ecd9",
+        "version" : "9.1.0"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Persister",
       "state" : {
-        "branch" : "feature/swift-6",
-        "revision" : "a9251d506d2c2b56f0d6004ebb6dd2dd4a5d5d73"
+        "revision" : "f51e2226f0c8b0c9c37ded2739a42181accf2953",
+        "version" : "2.0.0"
       }
     }
   ],
