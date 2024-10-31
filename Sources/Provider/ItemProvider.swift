@@ -8,7 +8,7 @@
 
 import Foundation
 import Combine
-@preconcurrency import Networking
+import Networking
 import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
