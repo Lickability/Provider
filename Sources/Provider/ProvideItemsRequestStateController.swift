@@ -12,6 +12,7 @@ import Persister
 @preconcurrency import Combine
 
 /// A class responsible for representing the state and value of a provider items request being made.
+@MainActor
 public final class ProvideItemsRequestStateController<Item: Providable>: Sendable {
     
     /// The state of a provider request's lifecycle.
@@ -91,8 +92,7 @@ public final class ProvideItemsRequestStateController<Item: Providable>: Sendabl
     
     private let provider: Provider
     private let providerStatePublisher: PassthroughSubject<ProvideItemsRequestState, Never>
-    private let cancellablesQueue = DispatchQueue(label: "com.lickability.Provider.ProvideItemsRequestStateController.cancellable.queue")
-    nonisolated(unsafe) private var cancellables = Set<AnyCancellable>()
+    private var cancellables = Set<AnyCancellable>()
     
     /// Initializes the `ProvideItemsRequestStateController` with the specified parameters.
     /// - Parameter provider: The `Provider` used to provide a response from.
@@ -111,30 +111,23 @@ public final class ProvideItemsRequestStateController<Item: Providable>: Sendabl
     ///   - requestBehaviors: Additional `RequestBehavior`s to append to the request.
     ///   - allowExpiredItem: A `Bool` indicating if the provider should be allowed to return an expired item.
     ///   - retryCount: The number of retries that should be made, if the request failed.
-    @MainActor
     public func provideItems(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false, retryCount: Int = 2) {
         providerStatePublisher.send(.inProgress)
 
-        let cancellable =  provider.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: allowExpiredItems)
+        provider.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: allowExpiredItems)
             .retry(retryCount)
             .mapAsResult()
             .receive(on: scheduler)
             .sink { [providerStatePublisher] result in
                 providerStatePublisher.send(.completed(result))
             }
-        
-        _ = cancellablesQueue.sync {
-            cancellables.insert(cancellable)
-        }
+            .store(in: &cancellables)
     }
     
     /// Resets the state of the `providerStatePublisher` and cancels any in flight requests that may be ongoing. Cancellation is not guaranteed, and requests that are near completion may end up finishing, despite being cancelled.
     public func resetState() {
-        cancellablesQueue.sync {
-            cancellables.forEach { $0.cancel() }
-            cancellables.removeAll()
-        }
-
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
         providerStatePublisher.send(.notInProgress)
     }
 }

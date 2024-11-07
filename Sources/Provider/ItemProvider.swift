@@ -12,6 +12,7 @@ import Networking
 import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
+@MainActor
 public final class ItemProvider: Sendable {
     
     /// The policy for how the provider checks the cache and/or the network for items.
@@ -33,9 +34,7 @@ public final class ItemProvider: Sendable {
     
     private let fetchPolicy: FetchPolicy
     private let defaultProviderBehaviors: [ProviderBehavior]
-    private let providerQueue = DispatchQueue(label: "ProviderQueue", attributes: .concurrent)
-    private let cancellableQueue = DispatchQueue(label: "CancellableQueue")
-    nonisolated(unsafe) private var cancellables = Set<AnyCancellable?>()
+    private var cancellables = Set<AnyCancellable?>()
     
     /// Creates a new `ItemProvider`.
     /// - Parameters:
@@ -55,10 +54,9 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    @MainActor
     @discardableResult public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable? {
         
-        nonisolated(unsafe) var cancellable: AnyCancellable?
+        var cancellable: AnyCancellable?
         cancellable = provide(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
@@ -73,22 +71,19 @@ extension ItemProvider: Provider {
                     break
                 }
                 
-                _ = self?.cancellableQueue.sync {
-                    self?.cancellables.remove(cancellable)
-                }
+                self?.cancellables.remove(cancellable)
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
             })
         
-        _ = cancellableQueue.sync { self.cancellables.insert(cancellable) }
+        self.cancellables.insert(cancellable)
         
         return cancellable
     }
     
-    @MainActor
     @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
         
-        nonisolated(unsafe) var cancellable: AnyCancellable?
+        var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
@@ -103,19 +98,16 @@ extension ItemProvider: Provider {
                     break
                 }
                 
-                _ = self?.cancellableQueue.sync {
-                    self?.cancellables.remove(cancellable)
-                }
+                self?.cancellables.remove(cancellable)
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
             })
         
-        _ = cancellableQueue.sync { self.cancellables.insert(cancellable) }
+        self.cancellables.insert(cancellable)
         
         return cancellable
     }
-        
-    @MainActor
+    
     public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
         let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher = itemCachePublisher(for: request)
@@ -162,7 +154,6 @@ extension ItemProvider: Provider {
                 }, receiveOutput: { item in
                     providerBehaviors.providerDidProvide(item: item, forRequest: request)
                 })
-                .subscribe(on: providerQueue)
                 .eraseToAnyPublisher()
     }
     
@@ -180,7 +171,6 @@ extension ItemProvider: Provider {
         return cachePublisher
     }
     
-    @MainActor
     private func itemNetworkPublisher<Item: Providable>(for request: any ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<Item, ProviderError> {
         return networkRequestPerformer.send(request, scheduler: DispatchQueue.main, requestBehaviors: behaviors)
             .mapError { ProviderError.networkError($0) }
@@ -194,7 +184,6 @@ extension ItemProvider: Provider {
             .eraseToAnyPublisher()
     }
     
-    @MainActor
     public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
         
         let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher = itemsCachePublisher(for: request)
@@ -254,11 +243,9 @@ extension ItemProvider: Provider {
                 }, receiveOutput: { item in
                     providerBehaviors.providerDidProvide(item: item, forRequest: request)
                 })
-                .subscribe(on: providerQueue)
                 .eraseToAnyPublisher()
     }
     
-    @MainActor
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
            provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
@@ -267,7 +254,6 @@ extension ItemProvider: Provider {
         }
     }
     
-    @MainActor
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
             provideItems(request: request, providerBehaviors: providerBehaviors) { result in
@@ -290,7 +276,6 @@ extension ItemProvider: Provider {
         return cachePublisher
     }
     
-    @MainActor
     private func itemsNetworkPublisher<Item: Providable>(for request: any ProviderRequest, behaviors: [RequestBehavior], decoder: ItemDecoder) -> AnyPublisher<[Item], ProviderError> {
         
         return networkRequestPerformer.send(request, scheduler: DispatchQueue.main, requestBehaviors: behaviors)

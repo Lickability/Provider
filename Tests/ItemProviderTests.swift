@@ -31,12 +31,10 @@ class ItemProviderTests: XCTestCase {
     private lazy var itemPath = OHPathForFile("Item.json", type(of: self))!
     private lazy var itemsPath = OHPathForFile("Items.json", type(of: self))!
 
-    override func tearDown() {
+    override func tearDown() async throws {
         HTTPStubs.removeAllStubs()
         try? provider.cache?.removeAll()
         try? expiredProvider.cache?.removeAll()
-        
-        super.tearDown()
     }
     
     // MARK: - Item Provider Item Handler Tests
