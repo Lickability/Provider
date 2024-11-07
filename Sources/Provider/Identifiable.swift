@@ -12,7 +12,7 @@ import Foundation
 public typealias Key = String
 
 /// Describes a type that can be uniquely identified by a `Key`.
-public protocol Identifiable {
+public protocol Identifiable: Sendable {
     
     /// The key used to uniquely identify the receiver.
     var identifier: Key { get }

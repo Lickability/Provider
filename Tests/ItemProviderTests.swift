@@ -16,11 +16,12 @@ import Persister
 
 @testable import Provider
 
+@MainActor
 class ItemProviderTests: XCTestCase {
     
     private let provider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
     private let expiredProvider: ItemProvider = {
-        let networkController = NetworkController(urlSession: .shared, defaultRequestBehaviors: [])
+        let networkController = NetworkController()
         let cache = Persister(memoryCache: MemoryCache(capacity: .unlimited, expirationPolicy: .afterInterval(-1)), diskCache: DiskCache(rootDirectoryURL: FileManager.default.cachesDirectoryURL, expirationPolicy: .afterInterval(-1)))
         
         return ItemProvider(networkRequestPerformer: networkController, cache: cache)
@@ -30,12 +31,10 @@ class ItemProviderTests: XCTestCase {
     private lazy var itemPath = OHPathForFile("Item.json", type(of: self))!
     private lazy var itemsPath = OHPathForFile("Items.json", type(of: self))!
 
-    override func tearDown() {
+    override func tearDown() async throws {
         HTTPStubs.removeAllStubs()
         try? provider.cache?.removeAll()
         try? expiredProvider.cache?.removeAll()
-        
-        super.tearDown()
     }
     
     // MARK: - Item Provider Item Handler Tests
@@ -61,7 +60,7 @@ class ItemProviderTests: XCTestCase {
         
         wait(for: [expectation], timeout: 2)
     }
-        
+    
     func testProvideItemReturnsCachedResult() {
         let request = TestProviderRequest()
         
