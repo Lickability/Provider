@@ -9,7 +9,7 @@
 import Foundation
 
 /// Describes a type that can be used to implement behaviors for provider requests.
-public protocol ProviderBehavior {
+public protocol ProviderBehavior: Sendable {
     
     /// Called before a provider request is performed.
     /// - Parameter request: The request that will be made.
@@ -20,11 +20,6 @@ public protocol ProviderBehavior {
     ///   - item: The requested item.
     ///   - request: The request that was performed to retrieve the item.
     func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest)
-}
-
-extension ProviderBehavior {
-    func providerWillProvide(forRequest request: any ProviderRequest) { }
-    func providerDidProvide<Item: Codable>(item: Item, forRequest request: any ProviderRequest) { }
 }
 
 extension Array: ProviderBehavior where Element == ProviderBehavior {

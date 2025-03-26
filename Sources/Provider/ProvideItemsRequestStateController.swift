@@ -9,10 +9,11 @@
 import Foundation
 import Networking
 import Persister
-import Combine
+@preconcurrency import Combine
 
 /// A class responsible for representing the state and value of a provider items request being made.
-public final class ProvideItemsRequestStateController<Item: Providable> {
+@MainActor
+public final class ProvideItemsRequestStateController<Item: Providable>: Sendable {
     
     /// The state of a provider request's lifecycle.
     public enum ProvideItemsRequestState {
@@ -115,18 +116,18 @@ public final class ProvideItemsRequestStateController<Item: Providable> {
     }
     
     /// A `Publisher` that can be subscribed to in order to receive updates about the status of a request.
-    public private(set) lazy var publisher: AnyPublisher<ProvideItemsRequestState, Never> = {
-        return providerStatePublisher.prepend(.notInProgress).eraseToAnyPublisher()
-    }()
+    public let publisher: AnyPublisher<ProvideItemsRequestState, Never>
     
     private let provider: Provider
-    private let providerStatePublisher = PassthroughSubject<ProvideItemsRequestState, Never>()
+    private let providerStatePublisher: PassthroughSubject<ProvideItemsRequestState, Never>
     private var cancellables = Set<AnyCancellable>()
     
     /// Initializes the `ProvideItemsRequestStateController` with the specified parameters.
     /// - Parameter provider: The `Provider` used to provide a response from.
     public init(provider: Provider) {
         self.provider = provider
+        self.providerStatePublisher = PassthroughSubject<ProvideItemsRequestState, Never>()
+        self.publisher = providerStatePublisher.prepend(.notInProgress).eraseToAnyPublisher()
     }
     
     /// Sends a request with the specified parameters to provide back a list of items.
@@ -156,7 +157,6 @@ public final class ProvideItemsRequestStateController<Item: Providable> {
     public func resetState() {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
-
         providerStatePublisher.send(.notInProgress)
     }
 }

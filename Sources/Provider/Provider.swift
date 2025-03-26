@@ -12,10 +12,11 @@ import Networking
 import Persister
 
 /// Represents the type of an instance that can be retrieved by a `Provider`.
-public typealias Providable = Codable & Identifiable
+public typealias Providable = Codable & Identifiable & Sendable
 
 /// Describes a type that can retrieve items from persistence or networking and store them in persistence.
-public protocol Provider {
+@MainActor
+public protocol Provider: Sendable {
     
     /// Attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success. If `allowExpiredItem` is true, and an expired item exists, the `itemHandler` will first be called with the expired item, and then called again with the result of the network request.
     /// - Parameters:
@@ -26,7 +27,8 @@ public protocol Provider {
     ///   - handlerQueue: The queue on which to call the `itemHandler`.
     ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     ///   - itemHandler: The closure called upon completing the request that provides the desired item or the error that occurred when attempting to retrieve it.
-    func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void)
+    /// - Returns: Returns a `AnyCancellable` that lets you cancel the request.
+    @discardableResult func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable?
     
     /// Attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success. If `allowExpiredItems` is true, and the expired items exist, the `itemHandler` will first be called with the expired items, and then called again with the result of the network request.
     /// - Parameters:
@@ -37,7 +39,8 @@ public protocol Provider {
     ///   - handlerQueue: The queue on which to call the `itemsHandler`.
     ///   - allowExpiredItems: Allows the provider to return expired items from the cache. If expired items are returned, the completion will be called for both the expired items, and the items retrieved from the network when available.
     ///   - itemsHandler: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
-    func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void)
+    /// - Returns: Returns a `AnyCancellable` that lets you cancel the request.
+    @discardableResult func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable?
     
     /// Produces a publisher which, when subscribed to, attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success.
     /// - Parameters:
@@ -56,4 +59,22 @@ public protocol Provider {
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     ///   - allowExpiredItems: Allows the publisher to publish expired items from the cache. If expired items are published, this publisher will then also publish up to date results from the network when they are available.
     func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) -> AnyPublisher<[Item], ProviderError>
+    
+    /// Returns a item or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The item or error which occurred
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<Item, ProviderError>
+    
+    /// Returns a collection of items or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The items or error which occurred.
+    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<[Item], ProviderError>
 }

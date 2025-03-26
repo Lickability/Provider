@@ -3,10 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2E19FDC62B5719B20026925A /* ItemProviderTest+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC52B5719B20026925A /* ItemProviderTest+Async.swift */; };
+		2E19FDC82B5720580026925A /* FileManager+CachesDirectoryURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */; };
+		2E19FDCA2B57208F0026925A /* TestProviderRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC92B57208F0026925A /* TestProviderRequest.swift */; };
+		2E19FDCC2B57209C0026925A /* TestPostProviderRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDCB2B57209C0026925A /* TestPostProviderRequest.swift */; };
+		2E19FDCE2B5720E70026925A /* TestItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDCD2B5720E70026925A /* TestItem.swift */; };
 		4C04A60624E6EEBA00D73E0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04A60524E6EEBA00D73E0E /* AppDelegate.swift */; };
 		4C04A60824E6EEBA00D73E0E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04A60724E6EEBA00D73E0E /* SceneDelegate.swift */; };
 		4C04A60A24E6EEBA00D73E0E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04A60924E6EEBA00D73E0E /* ContentView.swift */; };
@@ -43,6 +48,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2E19FDC52B5719B20026925A /* ItemProviderTest+Async.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ItemProviderTest+Async.swift"; sourceTree = "<group>"; };
+		2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+CachesDirectoryURL.swift"; sourceTree = "<group>"; };
+		2E19FDC92B57208F0026925A /* TestProviderRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProviderRequest.swift; sourceTree = "<group>"; };
+		2E19FDCB2B57209C0026925A /* TestPostProviderRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPostProviderRequest.swift; sourceTree = "<group>"; };
+		2E19FDCD2B5720E70026925A /* TestItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestItem.swift; sourceTree = "<group>"; };
 		4C04A60224E6EEBA00D73E0E /* Provider.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Provider.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C04A60524E6EEBA00D73E0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4C04A60724E6EEBA00D73E0E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -122,6 +132,11 @@
 			children = (
 				F27A5796250BF32D00FBAD8F /* Test JSON */,
 				4C04A61C24E6EEBC00D73E0E /* ItemProviderTests.swift */,
+				2E19FDC52B5719B20026925A /* ItemProviderTest+Async.swift */,
+				2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */,
+				2E19FDC92B57208F0026925A /* TestProviderRequest.swift */,
+				2E19FDCB2B57209C0026925A /* TestPostProviderRequest.swift */,
+				2E19FDCD2B5720E70026925A /* TestItem.swift */,
 				4C04A61E24E6EEBC00D73E0E /* Info.plist */,
 			);
 			path = Tests;
@@ -243,8 +258,9 @@
 		4C04A5FA24E6EEBA00D73E0E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1610;
 				ORGANIZATIONNAME = Lickability;
 				TargetAttributes = {
 					4C04A60124E6EEBA00D73E0E = {
@@ -328,7 +344,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2E19FDCA2B57208F0026925A /* TestProviderRequest.swift in Sources */,
+				2E19FDC62B5719B20026925A /* ItemProviderTest+Async.swift in Sources */,
+				2E19FDCE2B5720E70026925A /* TestItem.swift in Sources */,
+				2E19FDCC2B57209C0026925A /* TestPostProviderRequest.swift in Sources */,
 				4C04A61D24E6EEBC00D73E0E /* ItemProviderTests.swift in Sources */,
+				2E19FDC82B5720580026925A /* FileManager+CachesDirectoryURL.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +379,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -391,6 +413,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -412,6 +435,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 			};
 			name = Debug;
 		};
@@ -419,6 +443,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -452,6 +477,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -466,6 +492,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -479,6 +506,7 @@
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Example/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -499,6 +527,7 @@
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Example/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -513,12 +542,11 @@
 		4C04A62524E6EEBC00D73E0E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -535,12 +563,11 @@
 		4C04A62624E6EEBC00D73E0E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JL4AKR8DVC;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -591,8 +618,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Persister";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
 			};
 		};
 		4CC4416124E6F7EB00F48427 /* XCRemoteSwiftPackageReference "Networking" */ = {
@@ -608,7 +635,7 @@
 			repositoryURL = "https://github.com/AliSoftware/OHHTTPStubs.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 9.0.0;
+				minimumVersion = 9.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

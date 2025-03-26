@@ -11,12 +11,12 @@ import Networking
 import Persister
 
 /// Possible errors encountered while attempting to provide items.
-public indirect enum ProviderError: LocalizedError {
+public indirect enum ProviderError: LocalizedError, Sendable {
     
     // MARK: - ProviderError
     
     /// A struct that represents a failure when retrieving an individual item during a request for multiple items.
-    public struct PartialRetrievalFailure {
+    public struct PartialRetrievalFailure: Sendable {
         
         /// They key for the item that failed to be retrieved.
         let key: String

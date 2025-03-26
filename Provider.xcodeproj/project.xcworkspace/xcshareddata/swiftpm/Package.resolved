@@ -1,4 +1,5 @@
 {
+  "originHash" : "e89086004bb1eb0eadde723b71e9d5a8a0b8b07ce2d76f38307d64c2244fd5ba",
   "pins" : [
     {
       "identity" : "networking",
@@ -14,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/AliSoftware/OHHTTPStubs.git",
       "state" : {
-        "revision" : "e92b5a5746ef16add2a1424f1fc19529d9a75cde",
-        "version" : "9.0.0"
+        "revision" : "12f19662426d0434d6c330c6974d53e2eb10ecd9",
+        "version" : "9.1.0"
       }
     },
     {
@@ -23,10 +24,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Persister",
       "state" : {
-        "branch" : "main",
-        "revision" : "ac8f39433b3ced5df28f6c414d06ddc50a57ba7c"
+        "revision" : "f51e2226f0c8b0c9c37ded2739a42181accf2953",
+        "version" : "2.0.0"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
