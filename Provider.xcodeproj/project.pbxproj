@@ -626,8 +626,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Lickability/Networking";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.0;
+				branch = "kpa/main-actor-removal";
+				kind = branch;
 			};
 		};
 		F27A5791250BF23900FBAD8F /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
