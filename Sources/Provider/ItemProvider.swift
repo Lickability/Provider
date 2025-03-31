@@ -256,7 +256,7 @@ extension ItemProvider: Provider {
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
-            provideItems(request: request, providerBehaviors: providerBehaviors) { result in
+            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
                 continuation.resume(returning: result)
             }
         }
