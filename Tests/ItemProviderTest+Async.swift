@@ -30,6 +30,7 @@ final class ItemProviderTests_Async: XCTestCase {
     private var cancellables = Set<AnyCancellable>()
     private lazy var itemPath = OHPathForFile("Item.json", type(of: self))!
     private lazy var itemsPath = OHPathForFile("Items.json", type(of: self))!
+    private lazy var datesPath = OHPathForFile("Dates.json", type(of: self))!
     
     override func tearDown() async throws {
         HTTPStubs.removeAllStubs()
@@ -205,6 +206,41 @@ final class ItemProviderTests_Async: XCTestCase {
         case .success:
             XCTFail("There should be an error.")
         case .failure: break
+        }
+    }
+    
+    func testAsyncProvideItemsWithCustomDecoder() async {
+        let request = TestProviderRequest()
+        
+        stub(condition: { _ in true }) { _ in
+            fixture(filePath: self.datesPath, headers: nil)
+        }
+        
+        // Test first to ensure failure when not providing a custom decoder.
+        let result1: Result<[TestDateContainer], ProviderError> = await provider.asyncProvideItems(request: request)
+        
+        switch result1 {
+        case .success:
+            XCTFail("Decoding should fail due to incorrect date format")
+        case let .failure(error):
+            switch error {
+            case .decodingError:
+                break
+            default:
+                XCTFail("An unexpected, non-decoding error occurred: \(error)")
+            }
+        }
+        
+        // Now test the same file with our custom decoder.
+        let customDecoder = JSONDecoder()
+        customDecoder.dateDecodingStrategy = .iso8601
+        let result2: Result<[TestDateContainer], ProviderError> = await provider.asyncProvideItems(request: request, decoder: customDecoder)
+        
+        switch result2 {
+        case let .success(dateContainers):
+            XCTAssertEqual(dateContainers.count, 2)
+        case let .failure(error):
+            XCTFail("An unexpected error occurred: \(error)")
         }
     }
 }
