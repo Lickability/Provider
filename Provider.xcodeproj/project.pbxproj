@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B3FF2BA2D9C2CC70079DD54 /* Dates.json in Resources */ = {isa = PBXBuildFile; fileRef = 0B3FF2B92D9C2CBF0079DD54 /* Dates.json */; };
+		0B3FF2BC2D9C2D700079DD54 /* TestDateContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B3FF2BB2D9C2D700079DD54 /* TestDateContainer.swift */; };
 		2E19FDC62B5719B20026925A /* ItemProviderTest+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC52B5719B20026925A /* ItemProviderTest+Async.swift */; };
 		2E19FDC82B5720580026925A /* FileManager+CachesDirectoryURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */; };
 		2E19FDCA2B57208F0026925A /* TestProviderRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E19FDC92B57208F0026925A /* TestProviderRequest.swift */; };
@@ -48,6 +50,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0B3FF2B92D9C2CBF0079DD54 /* Dates.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Dates.json; sourceTree = "<group>"; };
+		0B3FF2BB2D9C2D700079DD54 /* TestDateContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDateContainer.swift; sourceTree = "<group>"; };
 		2E19FDC52B5719B20026925A /* ItemProviderTest+Async.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ItemProviderTest+Async.swift"; sourceTree = "<group>"; };
 		2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+CachesDirectoryURL.swift"; sourceTree = "<group>"; };
 		2E19FDC92B57208F0026925A /* TestProviderRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProviderRequest.swift; sourceTree = "<group>"; };
@@ -136,6 +140,7 @@
 				2E19FDC72B5720580026925A /* FileManager+CachesDirectoryURL.swift */,
 				2E19FDC92B57208F0026925A /* TestProviderRequest.swift */,
 				2E19FDCB2B57209C0026925A /* TestPostProviderRequest.swift */,
+				0B3FF2BB2D9C2D700079DD54 /* TestDateContainer.swift */,
 				2E19FDCD2B5720E70026925A /* TestItem.swift */,
 				4C04A61E24E6EEBC00D73E0E /* Info.plist */,
 			);
@@ -191,6 +196,7 @@
 		F27A5796250BF32D00FBAD8F /* Test JSON */ = {
 			isa = PBXGroup;
 			children = (
+				0B3FF2B92D9C2CBF0079DD54 /* Dates.json */,
 				F27A5794250BF32B00FBAD8F /* Item.json */,
 				F27A5797250BF38000FBAD8F /* Items.json */,
 				F27A579C250BF6FE00FBAD8F /* InvalidItem.json */,
@@ -313,6 +319,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F27A579A250BF6A500FBAD8F /* Items.json in Resources */,
+				0B3FF2BA2D9C2CC70079DD54 /* Dates.json in Resources */,
 				F27A579F250BF73900FBAD8F /* InvalidItem.json in Resources */,
 				F27A57A0250BF73C00FBAD8F /* InvalidItems.json in Resources */,
 				F27A5799250BF6A300FBAD8F /* Item.json in Resources */,
@@ -347,6 +354,7 @@
 				2E19FDCA2B57208F0026925A /* TestProviderRequest.swift in Sources */,
 				2E19FDC62B5719B20026925A /* ItemProviderTest+Async.swift in Sources */,
 				2E19FDCE2B5720E70026925A /* TestItem.swift in Sources */,
+				0B3FF2BC2D9C2D700079DD54 /* TestDateContainer.swift in Sources */,
 				2E19FDCC2B57209C0026925A /* TestPostProviderRequest.swift in Sources */,
 				4C04A61D24E6EEBC00D73E0E /* ItemProviderTests.swift in Sources */,
 				2E19FDC82B5720580026925A /* FileManager+CachesDirectoryURL.swift in Sources */,
