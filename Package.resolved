@@ -1,25 +1,23 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "Networking",
-        "repositoryURL": "https://github.com/Lickability/Networking",
-        "state": {
-          "branch": null,
-          "revision": "89772986b8c38ed33dfcf2e7e89e649280c35049",
-          "version": "3.0.0"
-        }
-      },
-      {
-        "package": "Persister",
-        "repositoryURL": "https://github.com/Lickability/Persister",
-        "state": {
-          "branch": null,
-          "revision": "f51e2226f0c8b0c9c37ded2739a42181accf2953",
-          "version": "2.0.0"
-        }
+  "pins" : [
+    {
+      "identity" : "networking",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lickability/Networking",
+      "state" : {
+        "branch" : "kpa/main-actor-removal",
+        "revision" : "1b9dfca5590875618940d3e10912f89b4c644e77"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "persister",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lickability/Persister",
+      "state" : {
+        "revision" : "f51e2226f0c8b0c9c37ded2739a42181accf2953",
+        "version" : "2.0.0"
+      }
+    }
+  ],
+  "version" : 2
 }

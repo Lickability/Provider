@@ -12,7 +12,6 @@ import Networking
 import Persister
 
 /// Retrieves items from persistence or networking and stores them in persistence.
-@MainActor
 public final class ItemProvider: Sendable {
     
     /// The policy for how the provider checks the cache and/or the network for items.
@@ -34,7 +33,9 @@ public final class ItemProvider: Sendable {
     
     private let fetchPolicy: FetchPolicy
     private let defaultProviderBehaviors: [ProviderBehavior]
-    private var cancellables = Set<AnyCancellable?>()
+    
+    private let lock = NSLock()
+    nonisolated(unsafe) private var cancellables = Set<AnyCancellable?>()
     
     /// Creates a new `ItemProvider`.
     /// - Parameters:
@@ -47,6 +48,20 @@ public final class ItemProvider: Sendable {
         self.cache = cache
         self.fetchPolicy = fetchPolicy
         self.defaultProviderBehaviors = defaultProviderBehaviors
+    }
+    
+    fileprivate func insertCancellable(cancellable: AnyCancellable?) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        cancellables.insert(cancellable)
+    }
+    
+    fileprivate func removeCancellable(cancellable: AnyCancellable?) {
+        lock.lock()
+        defer { lock.unlock() }
+        
+        cancellables.remove(cancellable)
     }
 }
 
@@ -71,12 +86,12 @@ extension ItemProvider: Provider {
                     break
                 }
                 
-                self?.cancellables.remove(cancellable)
+                self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
             })
         
-        self.cancellables.insert(cancellable)
+        self.insertCancellable(cancellable: cancellable)
         
         return cancellable
     }
@@ -98,13 +113,12 @@ extension ItemProvider: Provider {
                     break
                 }
                 
-                self?.cancellables.remove(cancellable)
+                self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
             })
         
-        self.cancellables.insert(cancellable)
-        
+        self.insertCancellable(cancellable: cancellable)
         return cancellable
     }
     

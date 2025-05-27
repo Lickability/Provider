@@ -15,7 +15,6 @@ import Persister
 public typealias Providable = Codable & Identifiable & Sendable
 
 /// Describes a type that can retrieve items from persistence or networking and store them in persistence.
-@MainActor
 public protocol Provider: Sendable {
     
     /// Attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success. If `allowExpiredItem` is true, and an expired item exists, the `itemHandler` will first be called with the expired item, and then called again with the result of the network request.

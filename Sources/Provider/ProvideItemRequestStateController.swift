@@ -12,8 +12,7 @@ import Persister
 @preconcurrency import Combine
 
 /// A class responsible for representing the state and value of a provider item request being made.
-@MainActor
-public final class ProvideItemRequestStateController<Item: Providable>: Sendable {
+public final class ProvideItemRequestStateController<Item: Providable> {
     
     /// The state of a provider request's lifecycle.
     public enum ProvideItemRequestState {
