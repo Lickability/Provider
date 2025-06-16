@@ -12,7 +12,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/Lickability/Networking",
-            branch: "kpa/main-actor-removal"
+            .upToNextMajor(from: "3.0.2")
         ),
         .package(
             url: "https://github.com/Lickability/Persister",
