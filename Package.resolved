@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lickability/Networking",
       "state" : {
-        "revision" : "2ca427c34191edc4c86e52c6256056bc580b1fc6",
-        "version" : "3.0.2"
+        "version" : "3.0.2",
+        "revision" : "2ca427c34191edc4c86e52c6256056bc580b1fc6"
       }
     },
     {
