@@ -87,8 +87,9 @@ extension ItemProvider: Provider {
                 }
                 
                 self?.removeCancellable(cancellable: cancellable)
-            }, receiveValue: { (item: Item) in
+            }, receiveValue: { [weak self] (item: Item) in
                 itemHandler(.success(item))
+                self?.removeCancellable(cancellable: cancellable)
             })
         
         self.insertCancellable(cancellable: cancellable)
