@@ -262,18 +262,24 @@ extension ItemProvider: Provider {
     }
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
-        await withCheckedContinuation { continuation in
-           provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+        await withCheckedContinuation { [weak self] continuation in
+            var cancellable: AnyCancellable?
+            cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
                 continuation.resume(returning: result)
+                self?.removeCancellable(cancellable: cancellable)
             }
+            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
-        await withCheckedContinuation { continuation in
-            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+        await withCheckedContinuation { [weak self] continuation in
+            var cancellable: AnyCancellable?
+            cancellable = self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
                 continuation.resume(returning: result)
+                self?.removeCancellable(cancellable: cancellable)
             }
+            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
