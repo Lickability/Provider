@@ -78,7 +78,6 @@ extension ItemProvider: Provider {
                      requestBehaviors: requestBehaviors,
                      allowExpiredItem: allowExpiredItem)
             .receive(on: handlerQueue)
-            .first()
             .sink(receiveCompletion: { [weak self] result in
                 switch result {
                 case let .failure(error):
