@@ -108,6 +108,7 @@ public final class ProvideItemsRequestStateController<Item: Providable> {
     ///   - scheduler: The scheduler to receive the result on.
     ///   - providerBehaviors: Additional `ProviderBehavior`s to use.
     ///   - requestBehaviors: Additional `RequestBehavior`s to append to the request.
+    ///   - fetchPolicy: The policy for how the provider checks the cache and/or the network for items. Defaults to `.returnFromCacheElseNetwork`.
     ///   - allowExpiredItem: A `Bool` indicating if the provider should be allowed to return an expired item.
     ///   - retryCount: The number of retries that should be made, if the request failed.
     public func provideItems(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItems: Bool = false, retryCount: Int = 2) {

@@ -69,7 +69,7 @@ public protocol Provider: Sendable {
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    /// - Returns: The item or error which occurred
+    /// - Returns: The item or error which occurred.
     func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<Item, ProviderError>
     
     /// Returns a collection of items or a `ProviderError` after the async operation has been completed.
