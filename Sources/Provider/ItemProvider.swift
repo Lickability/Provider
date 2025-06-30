@@ -260,12 +260,18 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
-        await withCheckedContinuation { [weak self] continuation in
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async throws -> Item {
+        try await withCheckedThrowingContinuation { [weak self] continuation in
             var cancellable: AnyCancellable?
-            cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
-                continuation.resume(returning: result)
-                self?.removeCancellable(cancellable: cancellable)
+            cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<Item, ProviderError>) in
+               
+                switch result {
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                    self?.removeCancellable(cancellable: cancellable)
+                case let .success(item):
+                    continuation.resume(returning: item)
+                }
             }
             self?.insertCancellable(cancellable: cancellable)
         }
