@@ -276,30 +276,30 @@ extension ItemProvider: Provider {
         }
     }
     
-    public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder, providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any RequestBehavior] = []) async -> AsyncThrowingStream<Item, any Error> where Item : Identifiable, Item : Decodable, Item : Encodable {
-        return AsyncThrowingStream { [weak self] continuation in
+    public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        return AsyncStream { [weak self] continuation in
             self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false) { (result: Result<Item, ProviderError>) in
                 switch result {
                 case let .success(item):
-                    continuation.yield(item)
-                    continuation.finish()
-                case .failure(let error):
-                    continuation.finish(throwing: error)
+                    continuation.yield(.success(item))
+                case let .failure(error):
+                    continuation.yield(.failure(error))
                 }
+                continuation.finish()
             }
         }
     }
     
-    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: any ItemDecoder, providerBehaviors: [any ProviderBehavior], requestBehaviors: [any RequestBehavior]) async -> AsyncThrowingStream<[Item], any Error> where Item : Identifiable, Item : Decodable, Item : Encodable {
-        return AsyncThrowingStream { [weak self] continuation in
+    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        return AsyncStream { [weak self] continuation in
             self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false) { (result: Result<[Item], ProviderError>) in
                 switch result {
-                case let .success(item):
-                    continuation.yield(item)
-                    continuation.finish()
+                case let .success(items):
+                    continuation.yield(.success(items))
                 case .failure(let error):
-                    continuation.finish(throwing: error)
+                    continuation.yield(.failure(error))
                 }
+                continuation.finish()
             }
         }
     }

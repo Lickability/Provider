@@ -77,7 +77,7 @@ public protocol Provider: Sendable {
     /// - Returns: The items or error which occurred.
     func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<[Item], ProviderError>
     
-    /// Returns a stream of a single item. If an error is thrown the error is thrown to the user.
+    /// Returns a stream of a single item. Completes after an error or item is emitted.
     /// - Parameters:
     ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
@@ -86,12 +86,12 @@ public protocol Provider: Sendable {
     /// - Returns: An async throwing steam which emits an item or an error.
     func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async  -> AsyncStream<Result<Item, ProviderError>>
     
-    /// Returns a stream of items. If an error is thrown the error is thrown to the user.
+    /// Returns a stream of items. Completes after an error or items is emitted.
     /// - Parameters:
     ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    /// - Returns: An async throwing steam which emits a collection of items or an error.
+    /// - Returns: An async steam which emits a collection of items or an error.
     func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> AsyncStream<Result<[Item], ProviderError>>
 }
