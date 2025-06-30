@@ -262,17 +262,29 @@ extension ItemProvider: Provider {
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
-            provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { result in
+            var cancellable: AnyCancellable?
+            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { [weak self] result in
                 continuation.resume(returning: result)
+                
+                cancellable?.cancel()
+                self?.removeCancellable(cancellable: cancellable)
             }
+            
+            insertCancellable(cancellable: cancellable)
         }
     }
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
-            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { result in
+            var cancellable: AnyCancellable?
+            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { [weak self] result in
                 continuation.resume(returning: result)
+                
+                cancellable?.cancel()
+                self?.removeCancellable(cancellable: cancellable)
             }
+            
+            insertCancellable(cancellable: cancellable)
         }
     }
     
