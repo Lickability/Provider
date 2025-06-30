@@ -84,7 +84,7 @@ public protocol Provider: Sendable {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     /// - Returns: An async throwing steam which emits an item or an error.
-    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> AsyncThrowingStream<Item, any Error>
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async  -> AsyncStream<Result<Item, ProviderError>>
     
     /// Returns a stream of items. If an error is thrown the error is thrown to the user.
     /// - Parameters:
@@ -93,5 +93,5 @@ public protocol Provider: Sendable {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     /// - Returns: An async throwing steam which emits a collection of items or an error.
-    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> AsyncThrowingStream<[Item], any Error>
+    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> AsyncStream<Result<[Item], ProviderError>>
 }
