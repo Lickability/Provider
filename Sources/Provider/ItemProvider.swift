@@ -123,8 +123,8 @@ extension ItemProvider: Provider {
     }
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
-        var cancellable: AnyCancellable?
         return await withCheckedContinuation { [weak self] continuation in
+            var cancellable: AnyCancellable?
             cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<Item, ProviderError>) in
                switch result {
                case .failure(let error):
@@ -139,8 +139,8 @@ extension ItemProvider: Provider {
     }
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async  -> Result<[Item], ProviderError> {
-        var cancellable: AnyCancellable?
         return await withCheckedContinuation { [weak self] continuation in
+            var cancellable: AnyCancellable?
             cancellable = self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<[Item], ProviderError>) in
                 switch result {
                     case .failure(let error):
