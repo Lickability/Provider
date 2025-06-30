@@ -276,6 +276,34 @@ extension ItemProvider: Provider {
         }
     }
     
+    public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder, providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any RequestBehavior] = []) async -> AsyncThrowingStream<Item, any Error> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        return AsyncThrowingStream { [weak self] continuation in
+            self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false) { (result: Result<Item, ProviderError>) in
+                switch result {
+                case let .success(item):
+                    continuation.yield(item)
+                    continuation.finish()
+                case .failure(let error):
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+    }
+    
+    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: any ItemDecoder, providerBehaviors: [any ProviderBehavior], requestBehaviors: [any RequestBehavior]) async -> AsyncThrowingStream<[Item], any Error> where Item : Identifiable, Item : Decodable, Item : Encodable {
+        return AsyncThrowingStream { [weak self] continuation in
+            self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false) { (result: Result<[Item], ProviderError>) in
+                switch result {
+                case let .success(item):
+                    continuation.yield(item)
+                    continuation.finish()
+                case .failure(let error):
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+    }
+    
     private func itemsCachePublisher<Item: Providable>(for request: any ProviderRequest) -> Result<CacheItemsResponse<Item>?, ProviderError>.Publisher {
         let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher
         
