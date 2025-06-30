@@ -260,18 +260,18 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
-        await withCheckedContinuation { continuation in
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) -> AsyncStream<Result<Item, ProviderError>> {
+        return AsyncStream { continuation in
            provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
-                continuation.resume(returning: result)
+               continuation.yield(result)
             }
         }
     }
     
-    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
-        await withCheckedContinuation { continuation in
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) -> AsyncStream<Result<[Item], ProviderError>> {
+        return AsyncStream { continuation in
             provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
-                continuation.resume(returning: result)
+                continuation.yield(result)
             }
         }
     }
