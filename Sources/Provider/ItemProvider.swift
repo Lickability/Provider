@@ -279,12 +279,7 @@ extension ItemProvider: Provider {
     public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
         return AsyncStream { [weak self] continuation in
             self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false) { (result: Result<Item, ProviderError>) in
-                switch result {
-                case let .success(item):
-                    continuation.yield(.success(item))
-                case let .failure(error):
-                    continuation.yield(.failure(error))
-                }
+                continuation.yield(result)
                 continuation.finish()
             }
         }
@@ -293,12 +288,7 @@ extension ItemProvider: Provider {
     public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
         return AsyncStream { [weak self] continuation in
             self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false) { (result: Result<[Item], ProviderError>) in
-                switch result {
-                case let .success(items):
-                    continuation.yield(.success(items))
-                case .failure(let error):
-                    continuation.yield(.failure(error))
-                }
+                continuation.yield(result)
                 continuation.finish()
             }
         }
