@@ -11,17 +11,18 @@ import Combine
 import Networking
 import Persister
 
+/// The policy for how the provider checks the cache and/or the network for items.
+public enum FetchPolicy: Sendable {
+    
+    /// Only request from the network if we don't have items in the cache. If items exist in the cache and are expired, it returns items from the cache and the network.
+    case returnFromCacheElseNetwork
+    
+    /// Return items from the cache, then request from the network for updated items.
+    case returnFromCacheAndNetwork
+}
+
 /// Retrieves items from persistence or networking and stores them in persistence.
 public final class ItemProvider: Sendable {
-    
-    /// The policy for how the provider checks the cache and/or the network for items.
-    public enum FetchPolicy: Sendable {
-        /// Only request from the network if we don't have items in the cache. If items exist in the cache and are expired, it returns items from the cache and the network.
-        case returnFromCacheElseNetwork
-        
-        /// Return items from the cache, then request from the network for updated items.
-        case returnFromCacheAndNetwork
-    }
     
     private typealias CacheItemsResponse<T: Providable> = (itemContainers: [ItemContainer<T>], partialErrors: [ProviderError.PartialRetrievalFailure])
     
@@ -31,7 +32,6 @@ public final class ItemProvider: Sendable {
     /// The cache used to persist / recall previously retrieved items.
     public let cache: Cache?
     
-    private let fetchPolicy: FetchPolicy
     private let defaultProviderBehaviors: [ProviderBehavior]
     
     private let lock = NSLock()
@@ -41,12 +41,10 @@ public final class ItemProvider: Sendable {
     /// - Parameters:
     ///   - networkRequestPerformer: Performs network requests when items cannot be retrieved from persistence.
     ///   - cache: The cache used to persist / recall previously retrieved items.
-    ///   - fetchPolicy: The policy for how the provider checks the cache and/or the network for items. Defaults to `.returnFromCacheElseNetwork`.
     ///   - defaultProviderBehaviors: Actions to perform before _every_ provider request is performed and / or after _every_ provider request is completed.
-    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, defaultProviderBehaviors: [ProviderBehavior] = []) {
+    public init(networkRequestPerformer: NetworkRequestPerformer, cache: Cache?, defaultProviderBehaviors: [ProviderBehavior] = []) {
         self.networkRequestPerformer = networkRequestPerformer
         self.cache = cache
-        self.fetchPolicy = fetchPolicy
         self.defaultProviderBehaviors = defaultProviderBehaviors
     }
     
@@ -69,13 +67,14 @@ extension ItemProvider: Provider {
     
     // MARK: - Provider
     
-    @discardableResult public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable? {
+    @discardableResult public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItem: Bool = false, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable? {
         
         var cancellable: AnyCancellable?
         cancellable = provide(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
                      requestBehaviors: requestBehaviors,
+                     fetchPolicy: fetchPolicy,
                      allowExpiredItem: allowExpiredItem)
             .receive(on: handlerQueue)
             .sink(receiveCompletion: { [weak self] result in
@@ -96,13 +95,14 @@ extension ItemProvider: Provider {
         return cancellable
     }
     
-    @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
+    @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
         
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
                      providerBehaviors: providerBehaviors,
                      requestBehaviors: requestBehaviors,
+                     fetchPolicy: fetchPolicy,
                      allowExpiredItems: allowExpiredItems)
             .receive(on: handlerQueue)
             .sink(receiveCompletion: { [weak self] result in
@@ -122,14 +122,14 @@ extension ItemProvider: Provider {
         return cancellable
     }
     
-    public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
+    public func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItem: Bool = false) -> AnyPublisher<Item, ProviderError> {
         
         let cachePublisher: Result<ItemContainer<Item>?, ProviderError>.Publisher = itemCachePublisher(for: request)
         
         let networkPublisher: AnyPublisher<Item, ProviderError> = itemNetworkPublisher(for: request, behaviors: requestBehaviors, decoder: decoder)
         
         let providerPublisher = cachePublisher
-            .flatMap { [fetchPolicy] item -> AnyPublisher<Item, ProviderError> in
+            .flatMap { item -> AnyPublisher<Item, ProviderError> in
                 if let item = item {
                     let itemPublisher = Just(item)
                         .map { $0.item }
@@ -198,13 +198,13 @@ extension ItemProvider: Provider {
             .eraseToAnyPublisher()
     }
     
-    public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
+    public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItems: Bool = false) -> AnyPublisher<[Item], ProviderError> {
         
         let cachePublisher: Result<CacheItemsResponse<Item>?, ProviderError>.Publisher = itemsCachePublisher(for: request)
         let networkPublisher: AnyPublisher<[Item], ProviderError> = itemsNetworkPublisher(for: request, behaviors: requestBehaviors, decoder: decoder)
         
         let providerPublisher = cachePublisher
-            .flatMap { [fetchPolicy] response -> AnyPublisher<[Item], ProviderError> in
+            .flatMap { response -> AnyPublisher<[Item], ProviderError> in
                 if let response = response {
                     let itemContainers = response.itemContainers
                     
@@ -262,7 +262,7 @@ extension ItemProvider: Provider {
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
-           provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+            provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { result in
                 continuation.resume(returning: result)
             }
         }
@@ -270,7 +270,7 @@ extension ItemProvider: Provider {
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
-            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { result in
                 continuation.resume(returning: result)
             }
         }
@@ -311,12 +311,12 @@ extension ItemProvider {
     /// - Parameters:
     ///   - persistenceURL: The location on disk in which items are persisted. Defaults to the Application Support directory.
     ///   - memoryCacheCapacity: The capacity of the LRU memory cache. Defaults to a limited capacity of 100 items.
-    public static func configuredProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100), fetchPolicy: ItemProvider.FetchPolicy = .returnFromCacheElseNetwork) -> ItemProvider {
+    public static func configuredProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100)) -> ItemProvider {
         let memoryCache = MemoryCache(capacity: memoryCacheCapacity)
         let diskCache = DiskCache(rootDirectoryURL: persistenceURL)
         let persister = Persister(memoryCache: memoryCache, diskCache: diskCache)
         
-        return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, fetchPolicy: fetchPolicy, defaultProviderBehaviors: [])
+        return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, defaultProviderBehaviors: [])
     }
 }
 

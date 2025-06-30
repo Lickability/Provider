@@ -110,10 +110,10 @@ public final class ProvideItemRequestStateController<Item: Providable> {
     ///   - requestBehaviors: Additional `RequestBehavior`s to append to the request.
     ///   - allowExpiredItem: A `Bool` indicating if the provider should be allowed to return an expired item.
     ///   - retryCount: The number of retries that should be made, if the request failed.
-    public func provide(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], allowExpiredItem: Bool = false, retryCount: Int = 2) {
+    public func provide(request: any ProviderRequest, decoder: ItemDecoder, scheduler: some Scheduler = DispatchQueue.main, providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], fetchPolicy: FetchPolicy = .returnFromCacheElseNetwork, allowExpiredItem: Bool = false, retryCount: Int = 2) {
         providerStatePublisher.send(.inProgress)
 
-        provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
+        provider.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: fetchPolicy, allowExpiredItem: allowExpiredItem)
             .retry(retryCount)
             .mapAsResult()
             .receive(on: scheduler)
