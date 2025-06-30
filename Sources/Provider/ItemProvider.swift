@@ -250,10 +250,19 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
+    /// Returns a item or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The item or error which occurred.
+    ///
+    /// This will use a `fetchPolicy` of `.returnFromCacheElseNetwork` and `allowExpiredItems` of `false` to allow for a single result to be called through a continuation.
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
-            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { [weak self] result in
+            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork, allowExpiredItem: false) { [weak self] result in
                 continuation.resume(returning: result)
                 
                 cancellable?.cancel()
@@ -264,10 +273,19 @@ extension ItemProvider: Provider {
         }
     }
     
+    /// Returns a collection of items or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The items or error which occurred.
+    ///
+    /// This will use a `fetchPolicy` of `.returnFromCacheElseNetwork` and `allowExpiredItems` of `false` to allow for a single result to be called through a continuation.
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
-            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork) { [weak self] result in
+            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, fetchPolicy: .returnFromCacheElseNetwork, allowExpiredItems: false) { [weak self] result in
                 continuation.resume(returning: result)
                 
                 cancellable?.cancel()
