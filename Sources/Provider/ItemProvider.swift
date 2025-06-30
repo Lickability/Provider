@@ -124,8 +124,7 @@ extension ItemProvider: Provider {
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         return await withCheckedContinuation { [weak self] continuation in
-            var cancellable: AnyCancellable?
-            cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<Item, ProviderError>) in
+           self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<Item, ProviderError>) in
                switch result {
                case .failure(let error):
                    continuation.resume(returning: .failure(error))
@@ -134,23 +133,19 @@ extension ItemProvider: Provider {
                    continuation.resume(returning: .success(item))
                }
             }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async  -> Result<[Item], ProviderError> {
         return await withCheckedContinuation { [weak self] continuation in
-            var cancellable: AnyCancellable?
-            cancellable = self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<[Item], ProviderError>) in
+            self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<[Item], ProviderError>) in
                 switch result {
                     case .failure(let error):
                     continuation.resume(returning: .failure(error))
-                    self?.removeCancellable(cancellable: cancellable)
                 case .success(let items):
                     continuation.resume(returning: .success(items))
                 }
             }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
