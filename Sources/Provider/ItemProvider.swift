@@ -260,31 +260,35 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async throws -> Item {
-        try await withCheckedThrowingContinuation { [weak self] continuation in
-            var cancellable: AnyCancellable?
-            cancellable = self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { (result: Result<Item, ProviderError>) in
-               
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>>  {
+        var cancellable: AnyCancellable?
+        return AsyncStream { continuation in
+            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] (result: Result<Item, ProviderError>) in
                 switch result {
                 case let .failure(error):
-                    continuation.resume(throwing: error)
+                    continuation.yield(.failure(error))
                     self?.removeCancellable(cancellable: cancellable)
                 case let .success(item):
-                    continuation.resume(returning: item)
+                    continuation.yield(.success(item))
                 }
             }
-            self?.insertCancellable(cancellable: cancellable)
+            insertCancellable(cancellable: cancellable)
         }
     }
     
-    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
-        await withCheckedContinuation { [weak self] continuation in
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
+        return AsyncStream { continuation in
             var cancellable: AnyCancellable?
-            cancellable = self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
-                continuation.resume(returning: result)
-                self?.removeCancellable(cancellable: cancellable)
+            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] (result: Result<[Item], ProviderError>) in
+                switch result {
+                case .success(let success):
+                    continuation.yield(.success(success))
+                case .failure(let failure):
+                    continuation.yield(.failure(failure))
+                    self?.removeCancellable(cancellable: cancellable)
+                }
             }
-            self?.insertCancellable(cancellable: cancellable)
+            insertCancellable(cancellable: cancellable)
         }
     }
     
