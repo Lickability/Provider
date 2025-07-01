@@ -85,7 +85,6 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
-                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
@@ -97,7 +96,6 @@ extension ItemProvider: Provider {
     }
     
     @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
-        
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
@@ -112,7 +110,6 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
-                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
@@ -260,19 +257,67 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>>` instead.")
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
-           provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+            var cancellable: AnyCancellable?
+            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
                 continuation.resume(returning: result)
+                
+                self?.removeCancellable(cancellable: cancellable)
             }
+            
+            insertCancellable(cancellable: cancellable)
         }
     }
     
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>>` instead.")
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
-            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
+            var cancellable: AnyCancellable?
+            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
                 continuation.resume(returning: result)
+                
+                self?.removeCancellable(cancellable: cancellable)
             }
+            
+            insertCancellable(cancellable: cancellable)
+        }
+    }
+    
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> {
+        var cancellable: AnyCancellable?
+        return AsyncStream { [weak self] continuation in
+            cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false)
+                .sink { completion in
+                    switch completion {
+                    case .finished: break
+                    case let .failure(error):
+                        continuation.yield(.failure(error))
+                    }
+                    continuation.finish()
+                } receiveValue: { item in
+                    continuation.yield(.success(item))
+                }
+            self?.insertCancellable(cancellable: cancellable)
+        }
+    }
+    
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
+        var cancellable: AnyCancellable?
+        return AsyncStream { [weak self] continuation in
+            cancellable =  self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false)
+                .sink { completion in
+                    switch completion {
+                    case let .failure(error):
+                        continuation.yield(.failure(error))
+                    case .finished: break
+                    }
+                    continuation.finish()
+                } receiveValue: { items in
+                    continuation.yield(.success(items))
+                }
+            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
