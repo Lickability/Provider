@@ -43,7 +43,7 @@ final class ItemProviderTests_Async: XCTestCase {
     
     // MARK: - Async Provide Items Async Stream Tests
     
-    func testProvideItemsStream() async {
+    func testProvideItemsCacheElseNetworkProvider() async {
         let request = TestProviderRequest()
         
         stub(condition: { _ in true }) { _ in
@@ -62,7 +62,7 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
-    func testProvideItemsDoesNotReturnPartialResponseUponFailureForExpiredItemsStream() async {
+    func testProvideItemsDoesNotReturnPartialResponseUponFailureForExpiredItems() async {
         let request = TestProviderRequest()
         
         let originalStub = stub(condition: { _ in true }) { _ in
@@ -93,7 +93,7 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
-    func testProvideItemsFailureStream() async {
+    func testProvideItemsFailureCacheElseNetworkProvider() async {
         let request = TestProviderRequest()
         
         stub(condition: { _ in true }) { _ in
@@ -111,7 +111,7 @@ final class ItemProviderTests_Async: XCTestCase {
         
     }
     
-    // MARK: - Async Provide Item Async Stream Tests
+    // MARK: - CacheAndNetworkProvider Tests
     
     func testProvideItem() async {
         let request = TestProviderRequest()
@@ -120,7 +120,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-        let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheElseNetworkProvider.asyncProvide(request: request)
+        let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheAndNetworkProvider.asyncProvide(request: request)
         
         for await result in result {
             switch result {
@@ -131,50 +131,71 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
-    func testProvideItemReturnsCachedResult() async {
+    func testReturnsCachedItemThenNetworkFailureOnSubsequentRequest() async {
         let request = TestProviderRequest()
-        
-        let originalStub = stub(condition: { _ in true }) { _ in
+
+        let validStub = stub(condition: { _ in true }) { _ in
             fixture(filePath: self.itemPath, headers: nil)
         }
-        
-        let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheElseNetworkProvider.asyncProvide(request: request)
-        
-        for await result in result {
+
+        let initialStream: AsyncStream<Result<TestItem, ProviderError>> = await cacheAndNetworkProvider.asyncProvide(request: request)
+        var didCacheItem = false
+
+        for await result in initialStream {
             switch result {
             case .success:
-                HTTPStubs.removeStub(originalStub)
-                
-                stub(condition: { _ in true }) { _ in
-                    fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
-                }
-                
-                let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheElseNetworkProvider.asyncProvide(request: request)
-                for await result in result {
-                    switch result {
-                    case .success:
-                        break
-                    case let .failure(error):
-                        XCTFail("There should be no error: \(error)")
-                    }
-                }
-                
-            case let .failure(error):
-                XCTFail("There should be no error: \(error)")
+                didCacheItem = true
+            case .failure(let error):
+                XCTFail("Unexpected failure during initial request: \(error)")
             }
+        }
+
+        XCTAssertTrue(didCacheItem, "Expected to cache item after successful fetch")
+
+        HTTPStubs.removeStub(validStub)
+        
+        stub(condition: { _ in true }) { _ in
+            fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
+        }
+
+        let secondStream: AsyncStream<Result<TestItem, ProviderError>> = await cacheAndNetworkProvider.asyncProvide(request: request)
+        
+        var results = [Result<TestItem, ProviderError>]()
+
+        for await result in secondStream {
+            results.append(result)
+        }
+
+        guard results.count >= 2 else {
+            XCTFail("Expected both a cached response and a network response")
+            return
+        }
+
+        switch results[0] {
+        case .success:
+            break
+        case .failure(let error):
+            XCTFail("Expected cached success, but got error: \(error)")
+        }
+
+        switch results[1] {
+        case .success:
+            XCTFail("Expected network failure, but got success instead")
+        case .failure:
+            break
         }
     }
     
     func testProvideItemFailureStreamNoCachedItems() async {
         let request = TestProviderRequest()
         
-        try? cacheElseNetworkProvider.cache?.removeAll()
+        try? cacheAndNetworkProvider.cache?.removeAll()
         
         stub(condition: { _ in true }) { _ in
             fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
         }
         
-        let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheElseNetworkProvider.asyncProvide(request: request)
+        let result: AsyncStream<Result<TestItem, ProviderError>> = await cacheAndNetworkProvider.asyncProvide(request: request)
         
         for await result in result {
             switch result {
@@ -182,40 +203,6 @@ final class ItemProviderTests_Async: XCTestCase {
                 XCTFail("There should be an error.")
             case .failure:
                 break
-            }
-        }
-    }
-    
-    func testUsesCachedItemEvenWhenNetworkFails() async {
-        let request = TestProviderRequest()
-
-        let validStub = stub(condition: { _ in true }) { _ in
-            fixture(filePath: self.itemPath, headers: nil)
-        }
-
-        let resultStream:AsyncStream<Result<TestItem, ProviderError>>  = await cacheElseNetworkProvider.asyncProvide(request: request) // Updates the cache after successful network request.
-
-        for await result in resultStream {
-            switch result {
-            case .success:
-                HTTPStubs.removeStub(validStub)
-
-                stub(condition: { _ in true }) { _ in
-                    fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
-                }
-                
-                let resultStream:AsyncStream<Result<TestItem, ProviderError>>  = await cacheElseNetworkProvider.asyncProvide(request: request)
-               
-                for await result in resultStream {
-                    switch result {
-                    case .success:
-                        break
-                    case let .failure(error):
-                        XCTFail("Expected cached success, but got error: \(error)")
-                    }
-                }
-            case .failure(let error):
-                XCTFail("Expected cached success, but got error: \(error)")
             }
         }
     }
