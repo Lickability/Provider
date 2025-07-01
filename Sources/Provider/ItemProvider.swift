@@ -259,7 +259,7 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will crash. Please transition over to `AsyncStream` version of `func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>>` instead.")
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>>` instead.")
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
@@ -273,7 +273,7 @@ extension ItemProvider: Provider {
         }
     }
     
-    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will crash. Please transition over to `AsyncStream` version of `func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>>` instead.")
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>>` instead.")
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
