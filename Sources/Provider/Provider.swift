@@ -26,8 +26,9 @@ public protocol Provider: Sendable {
     ///   - handlerQueue: The queue on which to call the `itemHandler`.
     ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     ///   - itemHandler: The closure called upon completing the request that provides the desired item or the error that occurred when attempting to retrieve it.
+    ///   - completionHandler: Called when there is an error or the publisher completion finishes.
     /// - Returns: Returns a `AnyCancellable` that lets you cancel the request.
-    @discardableResult func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void) -> AnyCancellable?
+    @discardableResult func provide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool, itemHandler: @escaping (Result<Item, ProviderError>) -> Void, completionHandler: (() -> Void)?) -> AnyCancellable?
     
     /// Attempts to retrieve an array of items using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the items will be persisted upon success. If `allowExpiredItems` is true, and the expired items exist, the `itemHandler` will first be called with the expired items, and then called again with the result of the network request.
     /// - Parameters:
@@ -38,8 +39,9 @@ public protocol Provider: Sendable {
     ///   - handlerQueue: The queue on which to call the `itemsHandler`.
     ///   - allowExpiredItems: Allows the provider to return expired items from the cache. If expired items are returned, the completion will be called for both the expired items, and the items retrieved from the network when available.
     ///   - itemsHandler: The closure called upon completing the request that provides the desired items or the error that occurred when attempting to retrieve them.
+    ///   - completionHandler: Called when there is an error or the publisher completion finishes.
     /// - Returns: Returns a `AnyCancellable` that lets you cancel the request.
-    @discardableResult func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable?
+    @discardableResult func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void, completionHandler: (() -> Void)?) -> AnyCancellable?
     
     /// Produces a publisher which, when subscribed to, attempts to retrieve an item using the provided request, checking persistence first where possible and falling back to the network. If the network is used, the item will be persisted upon success.
     /// - Parameters:

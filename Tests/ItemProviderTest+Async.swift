@@ -20,6 +20,8 @@ import Persister
 final class ItemProviderTests_Async: XCTestCase {
 
     private let provider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
+    private let asyncStreamProvider = ItemProvider.configuredProvider(withRootPersistenceURL: FileManager.default.cachesDirectoryURL, memoryCacheCapacity: .unlimited)
+    
     private let expiredProvider: ItemProvider = {
         let networkController = NetworkController()
         let cache = Persister(memoryCache: MemoryCache(capacity: .unlimited, expirationPolicy: .afterInterval(-1)), diskCache: DiskCache(rootDirectoryURL: FileManager.default.cachesDirectoryURL, expirationPolicy: .afterInterval(-1)))
@@ -253,7 +255,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
         
-        let testItemResult: AsyncStream<Result<[TestItem], ProviderError>> = await provider.asyncProvideItems(request: request, decoder: JSONDecoder(), providerBehaviors: [], requestBehaviors: [])
+        let testItemResult: AsyncStream<Result<[TestItem], ProviderError>> = await asyncStreamProvider.asyncProvideItems(request: request, decoder: JSONDecoder(), providerBehaviors: [], requestBehaviors: [])
         for try await result in testItemResult {
             switch result {
             case let .success(testItems):
@@ -303,7 +305,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: OHPathForFile("InvalidItems.json", type(of: self))!, headers: nil)
         }
         
-        let result : AsyncStream<Result<[TestItem], ProviderError>> = await provider.asyncProvideItems(request: request)
+        let result : AsyncStream<Result<[TestItem], ProviderError>> = await asyncStreamProvider.asyncProvideItems(request: request)
         for await result in result {
             switch result {
             case .success:
@@ -322,7 +324,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-        let result: AsyncStream<Result<TestItem, ProviderError>> = await provider.asyncProvide(request: request)
+        let result: AsyncStream<Result<TestItem, ProviderError>> = await asyncStreamProvider.asyncProvide(request: request)
         
         for await result in result {
             switch result {
@@ -340,7 +342,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: self.itemPath, headers: nil)
         }
         
-        let result: Result<TestItem, ProviderError> = await provider.asyncProvide(request: request)
+        let result: Result<TestItem, ProviderError> = await asyncStreamProvider.asyncProvide(request: request)
         
         switch result {
         case .success:
@@ -350,7 +352,7 @@ final class ItemProviderTests_Async: XCTestCase {
                 fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
             }
             
-            let result: AsyncStream<Result<TestItem, ProviderError>> = await provider.asyncProvide(request: request)
+            let result: AsyncStream<Result<TestItem, ProviderError>> = await asyncStreamProvider.asyncProvide(request: request)
             for await result in result {
                 switch result {
                 case .success:
@@ -372,7 +374,7 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
         }
         
-        let result: AsyncStream<Result<TestItem, ProviderError>> = await provider.asyncProvide(request: request)
+        let result: AsyncStream<Result<TestItem, ProviderError>> = await asyncStreamProvider.asyncProvide(request: request)
         
         for await result in result {
             switch result {
