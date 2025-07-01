@@ -259,22 +259,6 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
-        await withCheckedContinuation { continuation in
-           provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
-                continuation.resume(returning: result)
-           }
-        }
-    }
-    
-    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
-        await withCheckedContinuation { continuation in
-            provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { result in
-                continuation.resume(returning: result)
-            }
-        }
-    }
-    
     public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
         return AsyncStream { [weak self] continuation in
             self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false) { (result: Result<Item, ProviderError>) in
@@ -331,14 +315,6 @@ extension ItemProvider {
     ///   - persistenceURL: The location on disk in which items are persisted. Defaults to the Application Support directory.
     ///   - memoryCacheCapacity: The capacity of the LRU memory cache. Defaults to a limited capacity of 100 items.
     public static func configuredProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100), fetchPolicy: ItemProvider.FetchPolicy = .returnFromCacheElseNetwork) -> ItemProvider {
-        let memoryCache = MemoryCache(capacity: memoryCacheCapacity)
-        let diskCache = DiskCache(rootDirectoryURL: persistenceURL)
-        let persister = Persister(memoryCache: memoryCache, diskCache: diskCache)
-        
-        return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, fetchPolicy: fetchPolicy, defaultProviderBehaviors: [])
-    }
-    
-    public static func configuredStreamingProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100), fetchPolicy: ItemProvider.FetchPolicy = .returnFromCacheAndNetwork) -> ItemProvider {
         let memoryCache = MemoryCache(capacity: memoryCacheCapacity)
         let diskCache = DiskCache(rootDirectoryURL: persistenceURL)
         let persister = Persister(memoryCache: memoryCache, diskCache: diskCache)
