@@ -96,7 +96,7 @@ extension ItemProvider: Provider {
         return cancellable
     }
     
-    @discardableResult public func provideItems<Item>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void, completionHandler: (() -> Void)? = nil) -> AnyCancellable? where Item : Identifiable, Item : Decodable, Item : Encodable {
+    @discardableResult public func provideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void, completionHandler: (() -> Void)? = nil) -> AnyCancellable? where Item : Identifiable, Item : Decodable, Item : Encodable {
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
