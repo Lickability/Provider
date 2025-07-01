@@ -339,14 +339,6 @@ extension ItemProvider {
         
         return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, fetchPolicy: fetchPolicy, defaultProviderBehaviors: [])
     }
-    
-    public static func configuredStreamingProvider(withRootPersistenceURL persistenceURL: URL = FileManager.default.applicationSupportDirectoryURL, memoryCacheCapacity: CacheCapacity = .limited(numberOfItems: 100), fetchPolicy: ItemProvider.FetchPolicy = .returnFromCacheAndNetwork) -> ItemProvider {
-        let memoryCache = MemoryCache(capacity: memoryCacheCapacity)
-        let diskCache = DiskCache(rootDirectoryURL: persistenceURL)
-        let persister = Persister(memoryCache: memoryCache, diskCache: diskCache)
-        
-        return ItemProvider(networkRequestPerformer: NetworkController(), cache: persister, fetchPolicy: fetchPolicy, defaultProviderBehaviors: [])
-    }
 }
 
 extension FileManager {
