@@ -39,6 +39,8 @@ final class ItemProviderTests_Async: XCTestCase {
         try? expiredProvider.cache?.removeAll()
     }
     
+    // MARK: - Async Provide Items Tests
+    
     func testProvideItems() async {
         let request = TestProviderRequest()
         
