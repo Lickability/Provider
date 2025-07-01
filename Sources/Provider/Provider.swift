@@ -61,6 +61,24 @@ public protocol Provider: Sendable {
     ///   - allowExpiredItems: Allows the publisher to publish expired items from the cache. If expired items are published, this publisher will then also publish up to date results from the network when they are available.
     func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) -> AnyPublisher<[Item], ProviderError>
     
+    /// Returns a item or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The item or error which occurred
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<Item, ProviderError>
+    
+    /// Returns a collection of items or a `ProviderError` after the async operation has been completed.
+    /// - Parameters:
+    ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
+    ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
+    ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
+    ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
+    /// - Returns: The items or error which occurred.
+    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<[Item], ProviderError>
+    
     /// Returns a stream of a single item.
     /// - Parameters:
     ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
