@@ -66,7 +66,7 @@ public protocol Provider: Sendable {
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
     /// - Returns: An async steam which emits an item or an error.
-    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async  -> AsyncStream<Result<Item, ProviderError>>
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> AsyncStream<Result<Item, ProviderError>>
     
     /// Returns a stream of items.
     /// - Parameters:
