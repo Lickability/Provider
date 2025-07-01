@@ -96,7 +96,7 @@ extension ItemProvider: Provider {
         return cancellable
     }
     
-    @discardableResult public func provideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void, completionHandler: (() -> Void)? = nil) -> AnyCancellable? where Item : Identifiable, Item : Decodable, Item : Encodable {
+    @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void, completionHandler: (() -> Void)? = nil) -> AnyCancellable? {
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
@@ -259,7 +259,7 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> {
         return AsyncStream { [weak self] continuation in
             self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false) { (result: Result<Item, ProviderError>) in
                 continuation.yield(result)
@@ -269,7 +269,7 @@ extension ItemProvider: Provider {
         }
     }
     
-    public func asyncProvideItems<Item>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> where Item : Identifiable, Item : Decodable, Item : Encodable {
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
         return AsyncStream { [weak self] continuation in
             self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false) { (result: Result<[Item], ProviderError>) in
                 continuation.yield(result)
