@@ -113,7 +113,7 @@ final class ItemProviderTests_Async: XCTestCase {
     
     // MARK: - Async Provide Item Async Stream Tests
     
-    func testProvideItemStream() async {
+    func testProvideItem() async {
         let request = TestProviderRequest()
         
         stub(condition: { _ in true }) { _ in
@@ -131,7 +131,7 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
-    func testProvideItemReturnsCachedResultStream() async {
+    func testProvideItemReturnsCachedResult() async {
         let request = TestProviderRequest()
         
         let originalStub = stub(condition: { _ in true }) { _ in
