@@ -165,8 +165,10 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
-    func testProvideItemFailureStream() async {
+    func testProvideItemFailureStreamNoCachedItems() async {
         let request = TestProviderRequest()
+        
+        try? cacheElseNetworkProvider.cache?.removeAll()
         
         stub(condition: { _ in true }) { _ in
             fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
@@ -178,7 +180,42 @@ final class ItemProviderTests_Async: XCTestCase {
             switch result {
             case .success:
                 XCTFail("There should be an error.")
-            case .failure: break
+            case .failure:
+                break
+            }
+        }
+    }
+    
+    func testUsesCachedItemEvenWhenNetworkFails() async {
+        let request = TestProviderRequest()
+
+        let validStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: self.itemPath, headers: nil)
+        }
+
+        let resultStream:AsyncStream<Result<TestItem, ProviderError>>  = await cacheElseNetworkProvider.asyncProvide(request: request) // Updates the cache after successful network request.
+
+        for await result in resultStream {
+            switch result {
+            case .success:
+                HTTPStubs.removeStub(validStub)
+
+                stub(condition: { _ in true }) { _ in
+                    fixture(filePath: OHPathForFile("InvalidItem.json", type(of: self))!, headers: nil)
+                }
+                
+                let resultStream:AsyncStream<Result<TestItem, ProviderError>>  = await cacheElseNetworkProvider.asyncProvide(request: request)
+               
+                for await result in resultStream {
+                    switch result {
+                    case .success:
+                        break
+                    case let .failure(error):
+                        XCTFail("Expected cached success, but got error: \(error)")
+                    }
+                }
+            case .failure(let error):
+                XCTFail("Expected cached success, but got error: \(error)")
             }
         }
     }
