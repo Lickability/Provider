@@ -89,7 +89,8 @@ final class ItemProviderTests_Async: XCTestCase {
                     switch error {
                     case .decodingError:
                        break
-                    default: XCTFail("Should have received a decoding error.")
+                    case .networkError, .partialRetrieval, .persistenceError:
+                        XCTFail("Should have received a decoding error, but found \(error)")
                     }
                 }
             }
@@ -138,7 +139,7 @@ final class ItemProviderTests_Async: XCTestCase {
                             XCTFail("Incorrect error received.")
                             return
                         }
-                    default:
+                    case .networkError, .decodingError, .persistenceError:
                         XCTFail("Should have received a partial retrieval error. But got \(error)")
                     }
                 }
@@ -162,7 +163,7 @@ final class ItemProviderTests_Async: XCTestCase {
             case let .failure(error):
                 switch error {
                 case .networkError, .partialRetrieval, .persistenceError:
-                    XCTFail("Expected decoding error.")
+                    XCTFail("Expected decoding error but found \(error)")
                 case .decodingError:
                     break
                 }
@@ -188,8 +189,8 @@ final class ItemProviderTests_Async: XCTestCase {
                 switch error {
                 case .decodingError:
                     break
-                default:
-                    XCTFail("An unexpected, non-decoding error occurred: \(error)")
+                case .networkError, .partialRetrieval, .persistenceError:
+                    XCTFail("Expected decoding error but found \(error)")
                 }
             }
         }
@@ -304,7 +305,7 @@ final class ItemProviderTests_Async: XCTestCase {
             case let .failure(error):
                 switch error {
                 case .networkError, .partialRetrieval, .persistenceError:
-                    XCTFail("Expected decoding error.")
+                    XCTFail("Expected decoding error but found \(error)")
                 case .decodingError:
                     break
                 }
@@ -436,11 +437,7 @@ final class ItemProviderTests_Async: XCTestCase {
                             XCTFail("Incorrect error received.")
                             return
                         }
-                    case let .decodingError(error):
-                        XCTFail("Should have received a partial retrieval error. But got \(error)")
-                    case let .networkError(error):
-                        XCTFail("Should have received a partial retrieval error. But got \(error)")
-                    case let .persistenceError(error):
+                    case .decodingError, .networkError, .persistenceError:
                         XCTFail("Should have received a partial retrieval error. But got \(error)")
                     }
                 }
