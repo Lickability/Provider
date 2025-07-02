@@ -65,10 +65,9 @@ public protocol Provider: Sendable {
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    ///   - handlerQueue: The queue on which to receive the network response on.
     ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     /// - Returns: An async steam which emits an item or an error.
-    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItem: Bool) async -> AsyncStream<Result<Item, ProviderError>>
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool) async -> AsyncStream<Result<Item, ProviderError>>
     
     /// Returns a stream of items.
     /// - Parameters:
@@ -76,8 +75,7 @@ public protocol Provider: Sendable {
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    ///   - handlerQueue: The queue on which to receive the network response on.
     ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
     /// - Returns: An async steam which emits a collection of items or an error.
-    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], handlerQueue: DispatchQueue, allowExpiredItems: Bool) async -> AsyncStream<Result<[Item], ProviderError>>
+    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) async -> AsyncStream<Result<[Item], ProviderError>>
 }
