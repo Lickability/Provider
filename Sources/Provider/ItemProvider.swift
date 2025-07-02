@@ -271,12 +271,11 @@ extension ItemProvider: Provider {
                         continuation.yield(.failure(error))
                     }
                     continuation.finish()
-                    self?.removeCancellable(cancellable: cancellable)
+                    cancellable?.cancel()
                     cancellable = nil
                 } receiveValue: { item in
                     continuation.yield(.success(item))
                 }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
@@ -291,12 +290,11 @@ extension ItemProvider: Provider {
                     case .finished: break
                     }
                     continuation.finish()
-                    self?.removeCancellable(cancellable: cancellable)
+                    cancellable?.cancel()
                     cancellable = nil
                 } receiveValue: { items in
                     continuation.yield(.success(items))
                 }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
