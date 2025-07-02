@@ -51,6 +51,7 @@ final class ItemProviderTests_Async: XCTestCase {
         }
         
         let testItemResult: AsyncStream<Result<[TestItem], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request, decoder: JSONDecoder(), providerBehaviors: [], requestBehaviors: [])
+        
         for try await result in testItemResult {
             switch result {
             case let .success(testItems):
@@ -58,7 +59,6 @@ final class ItemProviderTests_Async: XCTestCase {
             case let .failure(error):
                 XCTFail("There should be no error: \(error)")
             }
-          
         }
     }
     
@@ -69,25 +69,78 @@ final class ItemProviderTests_Async: XCTestCase {
             fixture(filePath: self.itemsPath, headers: nil)
         }
         
-        let _ : AsyncStream<Result<[TestItem], ProviderError>> = await expiredProvider.asyncProvideItems(request: request)
+        let result : AsyncStream<Result<[TestItem], ProviderError>> = await expiredProvider.asyncProvideItems(request: request)
         
-        try? self.expiredProvider.cache?.remove(forKey: "Hello 2")
-        HTTPStubs.removeStub(originalStub)
+        for await _ in result {
+            try? self.expiredProvider.cache?.remove(forKey: "Hello 2")
+            HTTPStubs.removeStub(originalStub)
+            
+            stub(condition: { _ in true}) { _ in
+                fixture(filePath: self.itemPath, headers: nil)
+            }
+            
+            let expiredResult : AsyncStream<Result<[TestItem], ProviderError>> = await expiredProvider.asyncProvideItems(request: request)
+            
+            for await result in expiredResult {
+                switch result {
+                case .success:
+                    XCTFail("Should have received a decoding error.")
+                case let .failure(error):
+                    switch error {
+                    case .decodingError:
+                       break
+                    default: XCTFail("Should have received a decoding error.")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testProvideItemsReturnsPartialResponseUponFailureCacheElseNetwork() async {
+        let request = TestProviderRequest()
         
-        stub(condition: { _ in true}) { _ in
-            fixture(filePath: self.itemPath, headers: nil)
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: self.itemsPath, headers: nil)
         }
         
-        let expiredResult : AsyncStream<Result<[TestItem], ProviderError>> = await expiredProvider.asyncProvideItems(request: request)
-        
-        for await result in expiredResult {
-            switch result {
-            case .success:
-                XCTFail("Should have received a decoding error.")
-            case let .failure(error):
-                switch error {
-                case .decodingError: break
-                default: XCTFail("Should have received a decoding error.")
+        let resultOne :  AsyncStream<Result<[TestItem], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request)
+       
+        for await _ in resultOne {
+            try? self.cacheElseNetworkProvider.cache?.remove(forKey: "Hello 2")
+            
+            HTTPStubs.removeStub(originalStub)
+            
+            stub(condition: { _ in true}) { _ in
+                fixture(filePath: self.itemPath, headers: nil)
+            }
+            
+            let secondResult: AsyncStream<Result<[TestItem], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request)
+            
+            for await secondResult in secondResult {
+                switch secondResult {
+                case .success:
+                    XCTFail("Should have received a partial retrieval failure.")
+                case let .failure(error):
+                    switch error {
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, error):
+                        let expectedItemIDs = ["Hello 1", "Hello 3"]
+                        
+                        XCTAssertEqual(retrievedItems.map { $0.identifier }, expectedItemIDs)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                        XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
+                        
+                        guard case ProviderError.decodingError = error else {
+                            XCTFail("Incorrect error received.")
+                            return
+                        }
+                        
+                        guard let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError else {
+                            XCTFail("Incorrect error received.")
+                            return
+                        }
+                    default:
+                        XCTFail("Should have received a partial retrieval error. But got \(error)")
+                    }
                 }
             }
         }
@@ -101,14 +154,20 @@ final class ItemProviderTests_Async: XCTestCase {
         }
         
         let result : AsyncStream<Result<[TestItem], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request)
+        
         for await result in result {
             switch result {
             case .success:
                 XCTFail("There should be an error.")
-            case .failure: break
+            case let .failure(error):
+                switch error {
+                case .networkError, .partialRetrieval, .persistenceError:
+                    XCTFail("Expected decoding error.")
+                case .decodingError:
+                    break
+                }
             }
         }
-        
     }
     
     // MARK: - CacheAndNetworkProvider Tests
@@ -124,7 +183,8 @@ final class ItemProviderTests_Async: XCTestCase {
         
         for await result in result {
             switch result {
-            case .success: break
+            case let .success(item):
+                XCTAssertEqual(item, TestItem(title: "Hello"))
             case let .failure(error):
                 XCTFail("There should be no error: \(error)")
             }
@@ -201,8 +261,13 @@ final class ItemProviderTests_Async: XCTestCase {
             switch result {
             case .success:
                 XCTFail("There should be an error.")
-            case .failure:
-                break
+            case let .failure(error):
+                switch error {
+                case .networkError, .partialRetrieval, .persistenceError:
+                    XCTFail("Expected decoding error.")
+                case .decodingError:
+                    break
+                }
             }
         }
     }
@@ -281,10 +346,64 @@ final class ItemProviderTests_Async: XCTestCase {
 
         for await result in finalStream {
             switch result {
-            case .success:
-                return
+            case let .success(item):
+                XCTAssertEqual(item, TestItem(title: "Hello"))
             case .failure(let error):
                 XCTFail("Expected success from cache but got error: \(error)")
+            }
+        }
+    }
+    
+    func testProvideItemsReturnsPartialResponseUponFailureCacheAndNetwork() async {
+        let request = TestProviderRequest()
+        
+        let originalStub = stub(condition: { _ in true }) { _ in
+            fixture(filePath: self.itemsPath, headers: nil)
+        }
+        
+        let resultOne :  AsyncStream<Result<[TestItem], ProviderError>> = await cacheAndNetworkProvider.asyncProvideItems(request: request)
+       
+        for await _ in resultOne {
+            try? self.cacheAndNetworkProvider.cache?.remove(forKey: "Hello 2")
+            
+            HTTPStubs.removeStub(originalStub)
+            
+            stub(condition: { _ in true}) { _ in
+                fixture(filePath: self.itemPath, headers: nil)
+            }
+            
+            let secondResult: AsyncStream<Result<[TestItem], ProviderError>> = await cacheAndNetworkProvider.asyncProvideItems(request: request)
+            
+            for await secondResult in secondResult {
+                switch secondResult {
+                case .success:
+                    XCTFail("Should have received a partial retrieval failure.")
+                case let .failure(error):
+                    switch error {
+                    case let .partialRetrieval(retrievedItems, persistenceErrors, error):
+                        let expectedItemIDs = ["Hello 1", "Hello 3"]
+                        
+                        XCTAssertEqual(retrievedItems.map { $0.identifier }, expectedItemIDs)
+                        XCTAssertEqual(persistenceErrors.count, 1)
+                        XCTAssertEqual(persistenceErrors.first?.key, "Hello 2")
+                        
+                        guard case ProviderError.decodingError = error else {
+                            XCTFail("Incorrect error received.")
+                            return
+                        }
+                        
+                        guard let persistenceError = persistenceErrors.first?.persistenceError, case PersistenceError.noValidDataForKey = persistenceError else {
+                            XCTFail("Incorrect error received.")
+                            return
+                        }
+                    case let .decodingError(error):
+                        XCTFail("Should have received a partial retrieval error. But got \(error)")
+                    case let .networkError(error):
+                        XCTFail("Should have received a partial retrieval error. But got \(error)")
+                    case let .persistenceError(error):
+                        XCTFail("Should have received a partial retrieval error. But got \(error)")
+                    }
+                }
             }
         }
     }

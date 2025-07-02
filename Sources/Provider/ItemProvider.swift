@@ -259,10 +259,11 @@ extension ItemProvider: Provider {
                 .eraseToAnyPublisher()
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> {
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItem: Bool = false) async -> AsyncStream<Result<Item, ProviderError>> {
         return AsyncStream { [weak self] continuation in
             var cancellable: AnyCancellable?
-            cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false)
+            cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
+                .receive(on: handlerQueue)
                 .sink { completion in
                     switch completion {
                     case .finished: break
@@ -279,10 +280,11 @@ extension ItemProvider: Provider {
         }
     }
     
-    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false) async -> AsyncStream<Result<[Item], ProviderError>> {
         return AsyncStream { [weak self] continuation in
             var cancellable: AnyCancellable?
             cancellable =  self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false)
+                .receive(on: handlerQueue)
                 .sink { completion in
                     switch completion {
                     case let .failure(error):
