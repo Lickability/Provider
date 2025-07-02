@@ -85,6 +85,7 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
+                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
@@ -110,6 +111,7 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
+                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
@@ -258,8 +260,8 @@ extension ItemProvider: Provider {
     }
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> {
-        var cancellable: AnyCancellable?
         return AsyncStream { [weak self] continuation in
+            var cancellable: AnyCancellable?
             cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false)
                 .sink { completion in
                     switch completion {
@@ -268,6 +270,8 @@ extension ItemProvider: Provider {
                         continuation.yield(.failure(error))
                     }
                     continuation.finish()
+                    self?.removeCancellable(cancellable: cancellable)
+                    cancellable = nil
                 } receiveValue: { item in
                     continuation.yield(.success(item))
                 }
@@ -276,8 +280,8 @@ extension ItemProvider: Provider {
     }
     
     public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
-        var cancellable: AnyCancellable?
         return AsyncStream { [weak self] continuation in
+            var cancellable: AnyCancellable?
             cancellable =  self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false)
                 .sink { completion in
                     switch completion {
@@ -286,6 +290,8 @@ extension ItemProvider: Provider {
                     case .finished: break
                     }
                     continuation.finish()
+                    self?.removeCancellable(cancellable: cancellable)
+                    cancellable = nil
                 } receiveValue: { items in
                     continuation.yield(.success(items))
                 }
