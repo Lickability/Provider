@@ -97,6 +97,7 @@ extension ItemProvider: Provider {
     }
     
     @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
+        
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
