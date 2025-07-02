@@ -170,6 +170,46 @@ final class ItemProviderTests_Async: XCTestCase {
         }
     }
     
+    func testAsyncProvideItemsWithCustomDecoder() async {
+        let request = TestProviderRequest()
+        
+        stub(condition: { _ in true }) { _ in
+            fixture(filePath: self.datesPath, headers: nil)
+        }
+        
+        // Test first to ensure failure when not providing a custom decoder.
+        let result1: AsyncStream<Result<[TestDateContainer], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request)
+        
+        for await result1 in result1 {
+            switch result1 {
+            case .success:
+                XCTFail("Decoding should fail due to incorrect date format")
+            case let .failure(error):
+                switch error {
+                case .decodingError:
+                    break
+                default:
+                    XCTFail("An unexpected, non-decoding error occurred: \(error)")
+                }
+            }
+        }
+        
+        
+        // Now test the same file with our custom decoder.
+        let customDecoder = JSONDecoder()
+        customDecoder.dateDecodingStrategy = .iso8601
+        let result2: AsyncStream<Result<[TestDateContainer], ProviderError>> = await cacheElseNetworkProvider.asyncProvideItems(request: request, decoder: customDecoder)
+        
+        for await result2 in result2 {
+            switch result2 {
+            case let .success(dateContainers):
+                XCTAssertEqual(dateContainers.count, 2)
+            case let .failure(error):
+                XCTFail("An unexpected error occurred: \(error)")
+            }
+        }
+    }
+    
     // MARK: - CacheAndNetworkProvider Tests
     
     func testProvideItem() async {
