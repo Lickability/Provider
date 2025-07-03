@@ -9,7 +9,7 @@
 import Foundation
 import Provider
 
-struct TestItem: Providable {
+struct TestItem: Providable, Equatable {
     var identifier: Key { return title }
     
     let title: String

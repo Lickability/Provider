@@ -59,21 +59,27 @@ public protocol Provider: Sendable {
     ///   - allowExpiredItems: Allows the publisher to publish expired items from the cache. If expired items are published, this publisher will then also publish up to date results from the network when they are available.
     func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) -> AnyPublisher<[Item], ProviderError>
     
-    /// Returns a item or a `ProviderError` after the async operation has been completed.
+    /// Makes a request for an item and provides the result of that request as a stream of results.
     /// - Parameters:
     ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    /// - Returns: The item or error which occurred
-    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<Item, ProviderError>
+    ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
+    /// - Returns: An async steam which emits results of the item or error.
+    ///
+    /// This stream can call multiple times depending on the `FetchPolicy` when you have it configured on a `ItemProvider`. Depending on the configured policy, it could return a single time with just the item or an error. It also can be configured to return a cache item first, then request from the network and return either the resulting network item or an error.
+    func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItem: Bool) async -> AsyncStream<Result<Item, ProviderError>>
     
-    /// Returns a collection of items or a `ProviderError` after the async operation has been completed.
+    /// Makes a request for a collection of items and provides the result of that request as a stream of results.
     /// - Parameters:
     ///   - request: The request that provides the details needed to retrieve the items from persistence or networking.
     ///   - decoder: The decoder used to convert network response data into an array of the type specified by the generic placeholder.
     ///   - providerBehaviors: Actions to perform before the provider request is performed and / or after the provider request is completed.
     ///   - requestBehaviors: Actions to perform before the network request is performed and / or after the network request is completed. Only called if the items weren’t successfully retrieved from persistence.
-    /// - Returns: The items or error which occurred.
-    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior]) async -> Result<[Item], ProviderError>
+    ///   - allowExpiredItem: Allows the provider to return an expired item from the cache. If an expired item is returned, the completion will be called for both the expired item, and the item retrieved from the network when available.
+    /// - Returns: An async steam which emits a collection of items or an error.
+    ///
+    /// This stream can call multiple times depending on the `FetchPolicy` when you have it configured on a `ItemProvider`. Depending on the configured policy, it could return a single time with a collection of items or an error. It also can be configured to return a collection of items first, then request from the network and return either the resulting network a collection of items or an error.
+    func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder, providerBehaviors: [ProviderBehavior], requestBehaviors: [RequestBehavior], allowExpiredItems: Bool) async -> AsyncStream<Result<[Item], ProviderError>>
 }
