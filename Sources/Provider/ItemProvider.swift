@@ -264,15 +264,8 @@ extension ItemProvider: Provider {
         return AsyncStream { [weak self] continuation in
             var cancellable: AnyCancellable?
             cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
-                .sink { completion in
-                    switch completion {
-                    case .finished: break
-                    case let .failure(error):
-                        continuation.yield(.failure(error))
-                    }
-                    continuation.finish()
-                    cancellable?.cancel()
-                    cancellable = nil
+                .sink { [weak self] completion in
+                    self?.handlePublisherCompletion(completion: completion, continuation: continuation, cancellable: &cancellable)
                 } receiveValue: { item in
                     continuation.yield(.success(item))
                 }
@@ -283,15 +276,8 @@ extension ItemProvider: Provider {
         return AsyncStream { [weak self] continuation in
             var cancellable: AnyCancellable?
             cancellable =  self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false)
-                .sink { completion in
-                    switch completion {
-                    case let .failure(error):
-                        continuation.yield(.failure(error))
-                    case .finished: break
-                    }
-                    continuation.finish()
-                    cancellable?.cancel()
-                    cancellable = nil
+                .sink { [weak self] completion in
+                    self?.handlePublisherCompletion(completion: completion, continuation: continuation, cancellable: &cancellable)
                 } receiveValue: { items in
                     continuation.yield(.success(items))
                 }
@@ -324,6 +310,17 @@ extension ItemProvider: Provider {
                 }
             })
             .eraseToAnyPublisher()
+    }
+    
+    private func handlePublisherCompletion<T>(completion: Subscribers.Completion<ProviderError>, continuation: AsyncStream<Result<T, ProviderError>>.Continuation, cancellable: inout AnyCancellable?) {
+        switch completion {
+        case let .failure(error):
+            continuation.yield(.failure(error))
+        case .finished: break
+        }
+        continuation.finish()
+        cancellable?.cancel()
+        cancellable = nil
     }
 }
 
