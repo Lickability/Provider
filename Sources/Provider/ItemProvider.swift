@@ -285,39 +285,27 @@ extension ItemProvider: Provider {
         }
     }
     
-    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>> {
-        var cancellable: AnyCancellable?
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], allowExpiredItem: Bool = false) async -> AsyncStream<Result<Item, ProviderError>> {
         return AsyncStream { [weak self] continuation in
-            cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: false)
-                .sink { completion in
-                    switch completion {
-                    case .finished: break
-                    case let .failure(error):
-                        continuation.yield(.failure(error))
-                    }
-                    continuation.finish()
+            var cancellable: AnyCancellable?
+            cancellable =  self?.provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItem: allowExpiredItem)
+                .sink { [weak self] completion in
+                    self?.handlePublisherCompletion(completion: completion, continuation: continuation, cancellable: &cancellable)
                 } receiveValue: { item in
                     continuation.yield(.success(item))
                 }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
-    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>> {
-        var cancellable: AnyCancellable?
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], allowExpiredItems: Bool = false) async -> AsyncStream<Result<[Item], ProviderError>> {
         return AsyncStream { [weak self] continuation in
+            var cancellable: AnyCancellable?
             cancellable =  self?.provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors, allowExpiredItems: false)
-                .sink { completion in
-                    switch completion {
-                    case let .failure(error):
-                        continuation.yield(.failure(error))
-                    case .finished: break
-                    }
-                    continuation.finish()
+                .sink { [weak self] completion in
+                    self?.handlePublisherCompletion(completion: completion, continuation: continuation, cancellable: &cancellable)
                 } receiveValue: { items in
                     continuation.yield(.success(items))
                 }
-            self?.insertCancellable(cancellable: cancellable)
         }
     }
     
@@ -347,6 +335,17 @@ extension ItemProvider: Provider {
                 }
             })
             .eraseToAnyPublisher()
+    }
+    
+    private func handlePublisherCompletion<T>(completion: Subscribers.Completion<ProviderError>, continuation: AsyncStream<Result<T, ProviderError>>.Continuation, cancellable: inout AnyCancellable?) {
+        switch completion {
+        case let .failure(error):
+            continuation.yield(.failure(error))
+        case .finished: break
+        }
+        continuation.finish()
+        cancellable?.cancel()
+        cancellable = nil
     }
 }
 
