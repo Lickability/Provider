@@ -85,7 +85,6 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
-                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (item: Item) in
                 itemHandler(.success(item))
@@ -97,7 +96,6 @@ extension ItemProvider: Provider {
     }
     
     @discardableResult public func provideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = [], handlerQueue: DispatchQueue = .main, allowExpiredItems: Bool = false, itemsHandler: @escaping (Result<[Item], ProviderError>) -> Void) -> AnyCancellable? {
-        
         var cancellable: AnyCancellable?
         cancellable = provideItems(request: request,
                      decoder: decoder,
@@ -112,7 +110,6 @@ extension ItemProvider: Provider {
                 case .finished:
                     break
                 }
-                
                 self?.removeCancellable(cancellable: cancellable)
             }, receiveValue: { (items: [Item]) in
                 itemsHandler(.success(items))
@@ -258,6 +255,34 @@ extension ItemProvider: Provider {
                     providerBehaviors.providerDidProvide(item: item, forRequest: request)
                 })
                 .eraseToAnyPublisher()
+    }
+    
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<Item, ProviderError>>` instead.")
+    public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<Item, ProviderError> {
+        await withCheckedContinuation { continuation in
+            var cancellable: AnyCancellable?
+            cancellable = provide(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
+                continuation.resume(returning: result)
+                
+                self?.removeCancellable(cancellable: cancellable)
+            }
+            
+            insertCancellable(cancellable: cancellable)
+        }
+    }
+    
+    @available(*, deprecated, message: "This API does not work with `FetchPolicy.returnFromCacheAndNetwork` and will only return the first response that is provided. Please transition over to `AsyncStream` version of `func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> AsyncStream<Result<[Item], ProviderError>>` instead.")
+    public func asyncProvideItems<Item: Providable>(request: any ProviderRequest, decoder: ItemDecoder = JSONDecoder(), providerBehaviors: [ProviderBehavior] = [], requestBehaviors: [RequestBehavior] = []) async -> Result<[Item], ProviderError> {
+        await withCheckedContinuation { continuation in
+            var cancellable: AnyCancellable?
+            cancellable = provideItems(request: request, decoder: decoder, providerBehaviors: providerBehaviors, requestBehaviors: requestBehaviors) { [weak self] result in
+                continuation.resume(returning: result)
+                
+                self?.removeCancellable(cancellable: cancellable)
+            }
+            
+            insertCancellable(cancellable: cancellable)
+        }
     }
     
     public func asyncProvide<Item: Providable>(request: any ProviderRequest, decoder: any ItemDecoder = JSONDecoder(), providerBehaviors: [any ProviderBehavior] = [], requestBehaviors: [any Networking.RequestBehavior] = [], allowExpiredItem: Bool = false) async -> AsyncStream<Result<Item, ProviderError>> {
